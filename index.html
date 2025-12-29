@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Meta Tags untuk Sharing (WhatsApp/Telegram/Link Preview) -->
     <title>Portal HUB KAL-SULAM - Operasional Tim</title>
+    <meta name="description" content="Dashboard Operasional Terpusat untuk Tim HUB KAL-SULAM. Akses Aplikasi, Laporan, dan Monitoring dalam satu pintu.">
+    <meta name="author" content="Tim Operasional">
+    <meta property="og:title" content="Portal HUB KAL-SULAM">
+    <meta property="og:description" content="Pusat kontrol operasional: Aplikasi, Laporan, Monitoring, dan Dokumen SOP.">
+    <meta property="og:type" content="website">
     
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
@@ -14,7 +21,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Konfigurasi Tailwind untuk Dark Mode -->
+    <!-- Konfigurasi Tailwind -->
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -36,35 +43,31 @@
     <style>
         body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         #root { min-height: 100vh; }
-        .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        .hover-scale { transition: transform 0.2s; }
-        .hover-scale:hover { transform: translateY(-4px); }
-        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        
+        /* Animasi Fade In */
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        /* Canvas Style */
-        canvas { touch-action: none; cursor: crosshair; }
-        /* Warning Badge Pulse */
-        .warning-pulse { animation: pulse-yellow 2s infinite; }
-        @keyframes pulse-yellow {
-            0% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.4); }
-            70% { box-shadow: 0 0 0 6px rgba(234, 179, 8, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(234, 179, 8, 0); }
-        }
-        /* Table Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        /* Sticky Table Header Style */
+        .sticky-header th { position: sticky; top: 0; z-index: 10; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 dark:bg-dark-bg dark:text-dark-text transition-colors duration-300">
+<body class="bg-gray-50 text-gray-800 dark:bg-dark-bg dark:text-dark-text transition-colors duration-300 selection:bg-pink-500 selection:text-white">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
 
         // ==========================================
-        // 📝 DATA UTAMA
+        // 📝 KONFIGURASI DATA (EDIT DI SINI)
         // ==========================================
 
         const APP_TITLE = "PORTAL HUB"; 
@@ -153,6 +156,7 @@
         // 2. DATA LAPORAN
         const REPORTS_DATA = [
             { name: "Report Daily", url: "https://docs.google.com/spreadsheets/d/1O07jB4h58Yqo2NXGQWwCd_ZpCmzAiPayUOAT1HrcRek/edit?usp=sharing", icon: "📅", color: "from-blue-500 to-blue-600", category: "Daily" },
+            { name: "Produktifity HUB", url: "#", icon: "📊", color: "from-indigo-500 to-indigo-600", category: "Daily", desc: "Laporan produktivitas kinerja HUB." },
             { name: "3PL", url: "#", icon: "🚚", color: "from-purple-500 to-purple-600", category: "Daily" },
             
             { name: "HUB MKS", url: "https://docs.google.com/spreadsheets/d/1LQOmA3pRxUy2a0olxzsAeY_yvbW5TCv-a_9nT58hjYo/edit?usp=sharing", icon: "📥", color: "from-green-500 to-green-600", category: "Inbound" },
@@ -222,14 +226,14 @@
                 ]
             },
             
-            // Handover (UPDATED)
+            // Handover 
             { 
                 name: "HD MKS", 
                 icon: "🤝", 
                 color: "from-cyan-500 to-cyan-600", 
                 category: "Handover",
                 links: [
-                    { label: "Upload Foto", url: "https://www.appsheet.com/newshortcut/c59090e2-96b5-48eb-b08e-cb5a1b5e2d33" }, // NEW BUTTON
+                    { label: "Upload Foto", url: "https://www.appsheet.com/newshortcut/c59090e2-96b5-48eb-b08e-cb5a1b5e2d33" }, 
                     { label: "2024-2025", url: "https://docs.google.com/spreadsheets/d/1gXEBZZJNtQmbKoOUpW3cYEIlhJZO6djSDKFELeJGMSc/edit?usp=sharing" },
                     { label: "2026", url: "https://docs.google.com/spreadsheets/d/16z7Db1TIKIkTGl3qTk6CQk0pN9ptQJgX8ozx2uWDEFQ/edit?usp=sharing" }
                 ]
@@ -256,13 +260,34 @@
                 color: "from-blue-500 to-blue-600", 
                 desc: "Dashboard validasi kelengkapan scan opcode per kuartal.",
                 links: [
-                    { label: "Q1 (Jan-Mar)", url: "https://docs.google.com/spreadsheets/d/1_JnS4DBUx9FCKfbpA-EfZE-qzJMHxekkZlAtc4Xey1Q/edit?usp=sharing" }, 
-                    { label: "Q2 (Apr-Jun)", url: "#" },
+                    { label: "Q1 (Jan-Mar)", url: "https://docs.google.com/spreadsheets/d/1JdBOfYQMramtAknSq9zj6k1L8fBXLVgqSYACmXKTKuc/edit?usp=sharing" }, 
+                    { label: "Q2 (Apr-Jun)", url: "https://docs.google.com/spreadsheets/d/1JdBOfYQMramtAknSq9zj6k1L8fBXLVgqSYACmXKTKuc/edit?usp=sharing" }, 
                     { label: "Q3 (Jul-Sep)", url: "#" },
                     { label: "Q4 (Okt-Des)", url: "#" }
                 ]
             },
-            { name: "Produktifity HUB", url: "#", icon: "📊", color: "from-indigo-500 to-indigo-600", desc: "Laporan produktivitas kinerja HUB." }
+            { 
+                name: "Parcel Inprogress (2026)", 
+                icon: "⏳", 
+                color: "from-cyan-500 to-cyan-600", 
+                desc: "Monitoring status parcel inprogress bulanan.",
+                fullWidthFirst: true, 
+                links: [
+                    { label: "Master Data", url: "https://docs.google.com/spreadsheets/d/1ZDZ0eTFsqtCjE93Xj8pJjYO0S2g0r5_320QbdCN94J8/edit?usp=sharing" },
+                    { label: "Januari", url: "https://docs.google.com/spreadsheets/d/12bTDCj1Pet0C8kYCv_leQn2dGJmCfz7lQhUlQ-Lec9A/edit?usp=sharing" },
+                    { label: "Februari", url: "#" },
+                    { label: "Maret", url: "#" },
+                    { label: "April", url: "#" },
+                    { label: "Mei", url: "#" },
+                    { label: "Juni", url: "#" },
+                    { label: "Juli", url: "#" },
+                    { label: "Agustus", url: "#" },
+                    { label: "September", url: "#" },
+                    { label: "Oktober", url: "#" },
+                    { label: "November", url: "#" },
+                    { label: "Desember", url: "#" }
+                ]
+            }
         ];
 
         // 4. DATA DOKUMEN & ARSIP
@@ -319,7 +344,7 @@
             }
         ];
 
-        // 5. DATA LOG KEJADIAN (INCIDENT LOGS)
+        // 6. DATA LOG KEJADIAN (INCIDENT LOGS)
         const CASE_LOGS = [
             {
                 id: 1,
@@ -343,7 +368,7 @@
             Grid: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>,
             Home: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>,
             External: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>,
-            Shield: () => <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>,
+            Shield: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>,
             Check: () => <svg className="w-4 h-4 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>,
             Report: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>,
             Warning: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>,
@@ -360,7 +385,10 @@
             User: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>,
             Filter: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>,
             Search: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>,
-            Copy: () => <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            Copy: () => <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>,
+            Hourglass: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0zM21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>,
+            Smile: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>,
+            Heart: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
         };
 
         // ==========================================
@@ -470,9 +498,12 @@
             );
         }
 
-        // --- COMPONENT: ITEM CARD (Support Multi-Link) ---
+        // --- COMPONENT: ITEM CARD (Support Multi-Link & Grid Layout) ---
         function ItemCard({ item }) {
             const hasMultipleLinks = item.links && item.links.length > 0;
+            // Check if links should be displayed in grid (e.g. for months)
+            // Modified logic: Use grid if specifically requested via fullWidthFirst OR if links > 4
+            const useGridLayout = (hasMultipleLinks && item.links.length > 4) || item.fullWidthFirst;
             
             if (hasMultipleLinks) {
                 return (
@@ -485,9 +516,12 @@
                         
                         {item.desc && <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">{item.desc}</p>}
                         
-                        <div className="space-y-2 relative z-10">
+                        <div className={`relative z-10 ${useGridLayout ? 'grid grid-cols-2 gap-2' : 'space-y-2'}`}>
                             {item.links.map((link, idx) => {
                                  const isLinkEmpty = link.url === '#' || !link.url;
+                                 // Check for full width first item
+                                 const isFullWidth = useGridLayout && item.fullWidthFirst && idx === 0;
+
                                  return (
                                     <a 
                                         key={idx}
@@ -498,9 +532,9 @@
                                             isLinkEmpty 
                                             ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 border-orange-100 dark:border-orange-800/30 hover:bg-orange-100 dark:hover:bg-orange-900/40 cursor-pointer' 
                                             : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-100 dark:border-dark-border hover:bg-pink-50 dark:hover:bg-pink-900/20 hover:text-pink-600 dark:hover:text-pink-400 hover:border-pink-200 dark:hover:border-pink-800/50'
-                                        }`}
+                                        } ${isFullWidth ? 'col-span-2' : ''}`}
                                     >
-                                        <span>{link.label}</span>
+                                        <span className="truncate mr-1">{link.label}</span>
                                         {isLinkEmpty ? <Icons.Warning /> : <Icons.External />}
                                     </a>
                                  )
@@ -580,8 +614,22 @@
                     <header className="mb-8">
                         <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-3">Halo, {USER_NAME} 👋</h2>
                         <div className="bg-white dark:bg-dark-card border-l-4 border-pink-500 p-4 rounded-r-lg shadow-sm">
-                            <p className="text-gray-700 dark:text-gray-300 italic text-lg mb-2">"Kesuksesan tidak datang dari apa yang kita lakukan sesekali, melainkan dari konsistensi setiap hari. Mari bersinergi memberikan yang terbaik!"</p>
-                            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">✨ Jaga Kesehatan & Integritas Selalu.</p>
+                            <p className="text-gray-700 dark:text-gray-300 italic text-lg mb-4">"Ingat, hasil besar dimulai dari langkah kecil yang tak terputus. Kesuksesan bukan soal kecepatan, tapi soal ketahanan. Mari rapatkan barisan dan bersinergi! Cukup targetkan diri Anda menjadi 1% lebih baik dari kemarin, dan lihatlah keajaiban yang akan kita ciptakan bersama."</p>
+                            
+                            <div className="flex flex-wrap gap-4 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                                <div className="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600">
+                                    <span className="text-green-500 mr-2"><Icons.Shield /></span>
+                                    Jaga kesehatan & Integritas
+                                </div>
+                                <div className="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600">
+                                    <span className="text-blue-500 mr-2"><Icons.User /></span>
+                                    #JadiOrangBaik
+                                </div>
+                                <div className="flex items-center bg-gray-50 dark:bg-gray-700 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600">
+                                    <span className="text-yellow-500 mr-2"><Icons.Smile /></span>
+                                    #PastiBawaHepi
+                                </div>
+                            </div>
                         </div>
                     </header>
                     <div className="bg-gradient-to-r from-purple-700 to-pink-600 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
@@ -593,8 +641,35 @@
                         <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-10 translate-y-10"><svg width="250" height="250" fill="white" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg></div>
                     </div>
 
-                    {/* LOG KEJADIAN (CASE LOGS) WITH FILTER */}
+                    {/* MENU PINTAS (GRID 5 Columns on Desktop) */}
                     <div>
+                        <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center"><span className="w-1.5 h-6 bg-gray-400 rounded-full mr-3"></span>Menu Pintas</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                            <div onClick={() => setActiveView('apps')} className="bg-white dark:bg-dark-card p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors"><Icons.Grid /></div>
+                                <h4 className="font-bold text-gray-800 dark:text-gray-100">Aplikasi</h4><p className="text-xs text-gray-500 dark:text-gray-400">{APPS_DATA.length} Apps Terhubung</p>
+                            </div>
+                            <div onClick={() => setActiveView('reports')} className="bg-white dark:bg-dark-card p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-green-600 group-hover:text-white transition-colors"><Icons.Report /></div>
+                                <h4 className="font-bold text-gray-800 dark:text-gray-100">Laporan</h4><p className="text-xs text-gray-500 dark:text-gray-400">Daily & Inbound</p>
+                            </div>
+                            <div onClick={() => setActiveView('monitoring')} className="bg-white dark:bg-dark-card p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors"><Icons.Monitor /></div>
+                                <h4 className="font-bold text-gray-800 dark:text-gray-100">Monitoring</h4><p className="text-xs text-gray-500 dark:text-gray-400">Stuck & Opcode</p>
+                            </div>
+                            <div onClick={() => setActiveView('documents')} className="bg-white dark:bg-dark-card p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-yellow-600 group-hover:text-white transition-colors"><Icons.Folder /></div>
+                                <h4 className="font-bold text-gray-800 dark:text-gray-100">Dokumen</h4><p className="text-xs text-gray-500 dark:text-gray-400">SOP & Arsip</p>
+                            </div>
+                            <div onClick={() => setActiveView('wbs')} className="bg-white dark:bg-dark-card p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-red-600 group-hover:text-white transition-colors"><Icons.Warning /></div>
+                                <h4 className="font-bold text-gray-800 dark:text-gray-100">WBS</h4><p className="text-xs text-gray-500 dark:text-gray-400">Lapor Pelanggaran</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* LOG KEJADIAN (CASE LOGS) WITH FILTER */}
+                    <div className="mt-8">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
                             <h3 className="font-bold text-gray-700 dark:text-gray-200 flex items-center">
                                 <span className="w-1.5 h-6 bg-red-600 rounded-full mr-3"></span>
@@ -765,13 +840,13 @@
 
                         <div className="overflow-x-auto custom-scrollbar">
                             <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                                <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300">
+                                <thead className="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-300 sticky-header">
                                     <tr>
-                                        <th className="px-4 py-3">Username</th>
-                                        <th className="px-4 py-3">Password</th>
-                                        <th className="px-4 py-3">App</th>
-                                        <th className="px-4 py-3">HUB</th>
-                                        <th className="px-4 py-3">Rute</th>
+                                        <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700">Username</th>
+                                        <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700">Password</th>
+                                        <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700">App</th>
+                                        <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700">HUB</th>
+                                        <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700">Rute</th>
                                         {/* Action Column Removed */}
                                     </tr>
                                 </thead>
@@ -827,7 +902,7 @@
                     {daily.length > 0 && (
                         <div>
                             <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center"><span className="w-1.5 h-6 bg-blue-600 rounded-full mr-3"></span>Daily Ops</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                                 {daily.map((item, idx) => <ItemCard key={idx} item={item} />)}
                             </div>
                         </div>
@@ -836,7 +911,7 @@
                     {inbound.length > 0 && (
                         <div>
                             <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center"><span className="w-1.5 h-6 bg-green-600 rounded-full mr-3"></span>Inbound Reports</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                                 {inbound.map((item, idx) => <ItemCard key={idx} item={item} />)}
                             </div>
                         </div>
@@ -845,16 +920,16 @@
                     {outbound.length > 0 && (
                         <div>
                             <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center"><span className="w-1.5 h-6 bg-orange-600 rounded-full mr-3"></span>Pre-Alert HUB to SS</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                                 {outbound.map((item, idx) => <ItemCard key={idx} item={item} />)}
                             </div>
                         </div>
                     )}
 
-                    {handover.length > 0 && (
+                     {handover.length > 0 && (
                         <div>
                             <h3 className="text-lg font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center"><span className="w-1.5 h-6 bg-cyan-600 rounded-full mr-3"></span>Handover (Serah Terima)</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                                 {handover.map((item, idx) => <ItemCard key={idx} item={item} />)}
                             </div>
                         </div>
@@ -872,7 +947,7 @@
                         <p className="text-gray-500 dark:text-gray-400">Pantau pergerakan paket dan kinerja HUB secara real-time.</p>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
                         {MONITORING_DATA.map((item, idx) => (
                             <ItemCard key={idx} item={item} />
                         ))}
