@@ -157,14 +157,14 @@
         const REPORTS_DATA = [
             { name: "Report Daily", url: "https://docs.google.com/spreadsheets/d/1O07jB4h58Yqo2NXGQWwCd_ZpCmzAiPayUOAT1HrcRek/edit?usp=sharing", icon: "📅", color: "from-blue-500 to-blue-600", category: "Daily" },
             { name: "Produktifity HUB", url: "#", icon: "📊", color: "from-indigo-500 to-indigo-600", category: "Daily", desc: "Laporan produktivitas kinerja HUB." },
-            { name: "3PL", url: "https://dasboardhub-lab.github.io/3PL_Report/", icon: "🚚", color: "from-purple-500 to-purple-600", category: "Daily" },
+            { name: "3PL", url: "#", icon: "🚚", color: "from-purple-500 to-purple-600", category: "Daily" },
             
             { name: "HUB MKS", url: "https://docs.google.com/spreadsheets/d/1LQOmA3pRxUy2a0olxzsAeY_yvbW5TCv-a_9nT58hjYo/edit?usp=sharing", icon: "📥", color: "from-green-500 to-green-600", category: "Inbound" },
             { name: "HUB BPP", url: "https://docs.google.com/spreadsheets/d/10s_aq0djzAPbj60uEhG5OPPiNtqQm5sEOmW55M1Kzqc/edit?usp=sharing", icon: "📥", color: "from-green-500 to-green-600", category: "Inbound" },
             { name: "HUB BJM & PLK", url: "https://docs.google.com/spreadsheets/d/1NEgdasBpS5WPEKbHr_q1cPBdlrjpfEyzsJ7cgk_64lU/edit?usp=sharing", icon: "📥", color: "from-green-500 to-green-600", category: "Inbound" },
             { name: "HUB Dummy", url: "https://docs.google.com/spreadsheets/d/1zs5tjOCCA56VD1eWxeWGhn_b9i4GEiKRhrmcM3S6WqA/edit?usp=sharing", icon: "📥", color: "from-green-500 to-green-600", category: "Inbound" },
             
-            // Outbound (Pre-Alert HUB to SS)
+            // Outbound
             { 
                 name: "HUB MKS", 
                 icon: "📤", 
@@ -287,6 +287,15 @@
                     { label: "November", url: "#" },
                     { label: "Desember", url: "#" }
                 ]
+            },
+             { 
+                name: "PICAPA", 
+                icon: "📈", 
+                color: "from-purple-500 to-purple-600", 
+                desc: "Form pencatatan case operasional dan hal-hal yang perlu di-improve.",
+                links: [
+                    { label: "Dashboard PICAPA", url: "https://gemini.google.com/share/5ad30949c3c1" }
+                ]
             }
         ];
 
@@ -341,22 +350,6 @@
                         desc: "Pedoman Keselamatan Kerja (K3) dan Prosedur Tanggap Darurat di area HUB."
                     }
                 ]
-            }
-        ];
-
-        // 6. DATA LOG KEJADIAN (INCIDENT LOGS)
-        const CASE_LOGS = [
-            {
-                id: 1,
-                date: "22 Des 2025",
-                hub: "MKS", 
-                month: "Desember", 
-                category: "Missroute",
-                title: "Paket tujuan BJM missroute ke BPP",
-                pic: "Rafli (Sorter HUB MKS)",
-                impact: "Paket harus dikirim ulang dari BPP ke BJM, menyebabkan keterlambatan penerimaan stok consumable di Under HUB BJM.",
-                status: "Closed",
-                color: "red"
             }
         ];
 
@@ -579,36 +572,6 @@
         }
 
         function HomeView({ setActiveView }) {
-            // FILTER STATE
-            const [filterHub, setFilterHub] = useState('All');
-            const [filterMonth, setFilterMonth] = useState('All');
-
-            // --- FILTER LOGIC (Data sudah tertanam di index.html, tidak perlu API) ---
-            // Data Log Kejadian Manual
-            const CASE_LOGS = [
-                {
-                    id: 1,
-                    date: "22 Des 2025",
-                    hub: "MKS", 
-                    month: "Desember", 
-                    category: "Missroute",
-                    title: "Paket tujuan BJM missroute ke BPP",
-                    pic: "Rafli (Sorter HUB MKS)",
-                    impact: "Paket harus dikirim ulang dari BPP ke BJM, menyebabkan keterlambatan penerimaan stok consumable di Under HUB BJM.",
-                    status: "Closed",
-                    color: "red"
-                }
-            ];
-
-            const hubList = ['All', ...new Set(CASE_LOGS.map(log => log.hub))];
-            const monthList = ['All', ...new Set(CASE_LOGS.map(log => log.month))];
-
-            const filteredLogs = CASE_LOGS.filter(log => {
-                const matchHub = filterHub === 'All' || log.hub === filterHub;
-                const matchMonth = filterMonth === 'All' || log.month === filterMonth;
-                return matchHub && matchMonth;
-            });
-
             return (
                 <div className="fade-in space-y-8">
                     <header className="mb-8">
@@ -665,80 +628,6 @@
                                 <div className="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-red-600 group-hover:text-white transition-colors"><Icons.Warning /></div>
                                 <h4 className="font-bold text-gray-800 dark:text-gray-100">WBS</h4><p className="text-xs text-gray-500 dark:text-gray-400">Lapor Pelanggaran</p>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* LOG KEJADIAN (CASE LOGS) WITH FILTER */}
-                    <div className="mt-8">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                            <h3 className="font-bold text-gray-700 dark:text-gray-200 flex items-center">
-                                <span className="w-1.5 h-6 bg-red-600 rounded-full mr-3"></span>
-                                Log Kejadian & Operasional
-                            </h3>
-                            
-                            {/* FILTER UI */}
-                            <div className="flex gap-2 mt-2 md:mt-0">
-                                <div className="relative">
-                                    <select 
-                                        value={filterHub} 
-                                        onChange={(e) => setFilterHub(e.target.value)}
-                                        className="appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border text-gray-700 dark:text-gray-300 py-1.5 pl-3 pr-8 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        {hubList.map(hub => <option key={hub} value={hub}>{hub === 'All' ? 'Semua HUB' : hub}</option>)}
-                                    </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"><Icons.Filter /></div>
-                                </div>
-
-                                <div className="relative">
-                                    <select 
-                                        value={filterMonth} 
-                                        onChange={(e) => setFilterMonth(e.target.value)}
-                                        className="appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border text-gray-700 dark:text-gray-300 py-1.5 pl-3 pr-8 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        {monthList.map(month => <option key={month} value={month}>{month === 'All' ? 'Semua Bulan' : month}</option>)}
-                                    </select>
-                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"><Icons.Filter /></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            {filteredLogs.length > 0 ? (
-                                filteredLogs.map((log) => (
-                                    <div key={log.id} className="bg-white dark:bg-dark-card rounded-xl border border-gray-200 dark:border-dark-border p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-                                        <div className={`absolute top-0 left-0 w-1.5 h-full ${log.color === 'red' ? 'bg-red-500' : 'bg-blue-500'}`}></div>
-                                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-3">
-                                            <div className="flex items-center space-x-2">
-                                                <span className="text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded border border-gray-200 dark:border-gray-600 flex items-center">
-                                                    <span className="mr-1"><Icons.Clock /></span> {log.date}
-                                                </span>
-                                                <span className={`text-xs font-bold px-2 py-1 rounded border ${log.color === 'red' ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-red-100 dark:border-red-800' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
-                                                    {log.category}
-                                                </span>
-                                                {/* Badge HUB & Bulan untuk verifikasi visual */}
-                                                <span className="text-[10px] bg-gray-50 dark:bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">
-                                                    {log.hub} - {log.month}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center mt-2 md:mt-0 text-xs text-gray-500 dark:text-gray-400">
-                                                <span className="mr-1"><Icons.User /></span> PIC: <span className="font-semibold ml-1">{log.pic}</span>
-                                            </div>
-                                        </div>
-                                        <h4 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">{log.title}</h4>
-                                        
-                                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-700 mt-2">
-                                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2"><strong className="text-gray-800 dark:text-gray-200">Impact:</strong> {log.impact}</p>
-                                            <div className="flex items-center justify-between">
-                                                <span className={`text-xs font-bold uppercase tracking-wider ${log.status === 'Closed' ? 'text-green-600 dark:text-green-400' : 'text-orange-500'}`}>Status: {log.status}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-8 bg-white dark:bg-dark-card rounded-xl border border-dashed border-gray-300 dark:border-dark-border">
-                                    <p className="text-gray-500 dark:text-gray-400 text-sm">Tidak ada log kejadian untuk filter yang dipilih.</p>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -799,7 +688,7 @@
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6 mb-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6 mb-8">
                         {filteredApps.map((app, idx) => (
                             <ItemCard key={idx} item={app} />
                         ))}
