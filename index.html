@@ -208,6 +208,10 @@
             const [dataReports, setDataReports] = useState(INITIAL_REPORTS);
             const [dataMonitoring, setDataMonitoring] = useState(INITIAL_MONITORING);
             const [dataDocuments, setDataDocuments] = useState(INITIAL_DOCUMENTS);
+            const [dataAccounts, setDataAccounts] = useState(ACCOUNT_DATA);
+            const [showAccountModal, setShowAccountModal] = useState(false);
+            const [editAccountData, setEditAccountData] = useState(null);
+            const [editAccountIndex, setEditAccountIndex] = useState(null);
 
             useEffect(() => {
                 if (darkMode) document.documentElement.classList.add('dark');
@@ -247,6 +251,38 @@
                 setEditItemIndex(null);
             };
 
+            const handleDeleteAccount = (index) => {
+                if (!confirm("Hapus akun ini?")) return;
+                setDataAccounts(prev => prev.filter((_, i) => i !== index));
+            };
+
+            const handleSaveAccount = (newAccount) => {
+                if (editAccountIndex !== null) {
+                    setDataAccounts(prev => {
+                        const newArr = [...prev];
+                        newArr[editAccountIndex] = newAccount;
+                        return newArr;
+                    });
+                } else {
+                    setDataAccounts(prev => [...prev, newAccount]);
+                }
+                setShowAccountModal(false);
+                setEditAccountData(null);
+                setEditAccountIndex(null);
+            };
+
+            const openAddAccountModal = () => {
+                setEditAccountData(null);
+                setEditAccountIndex(null);
+                setShowAccountModal(true);
+            };
+
+            const openEditAccountModal = (index, account) => {
+                setEditAccountData(account);
+                setEditAccountIndex(index);
+                setShowAccountModal(true);
+            };
+
             const openAddModal = (section) => {
                 setCurrentAddSection(section);
                 setEditItemData(null);
@@ -284,7 +320,7 @@
             const renderContent = () => {
                 switch(activeView) {
                     case 'home': return <HomeView setActiveView={handleMenuClick} dataApps={dataApps} dataReports={dataReports} dataMonitoring={dataMonitoring} dataDocuments={dataDocuments} />;
-                    case 'apps': return <AppsView data={dataApps} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('apps')} />;
+                    case 'apps': return <AppsView data={dataApps} dataAccounts={dataAccounts} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('apps')} onDeleteAccount={handleDeleteAccount} onEditAccount={openEditAccountModal} onAddAccount={openAddAccountModal} />;
                     case 'reports': return <ReportsView data={dataReports} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('reports')} />;
                     case 'monitoring': return <MonitoringView data={dataMonitoring} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('monitoring')} />;
                     case 'documents': return <DocumentsView data={dataDocuments} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('documents')} />;
@@ -294,8 +330,8 @@
             };
 
             return (
-                <div className="flex flex-col md:flex-row min-h-screen relative">
-                    <div className="md:hidden sticky top-0 z-40 bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border p-4 flex justify-between items-center shadow-sm">
+                <div className="flex flex-col md:flex-row h-screen overflow-hidden relative">
+                    <div className="md:hidden flex-shrink-0 sticky top-0 z-40 bg-white dark:bg-dark-card border-b border-gray-200 dark:border-dark-border p-4 flex justify-between items-center shadow-sm">
                         <div className="flex items-center">
                             <div className="w-8 h-8 bg-gradient-to-br from-pink-600 to-purple-700 rounded-lg flex items-center justify-center text-white font-bold mr-2">P</div>
                             <h1 className="font-bold text-gray-800 dark:text-gray-100 text-sm">{APP_TITLE}</h1>
@@ -331,22 +367,18 @@
                                 <NavButton id="monitoring" active={activeView === 'monitoring'} onClick={() => handleMenuClick('monitoring')} icon={<Icons.Monitor />} label="Monitoring" />
                                 <NavButton id="documents" active={activeView === 'documents'} onClick={() => handleMenuClick('documents')} icon={<Icons.Folder />} label="Dokumen & Arsip" />
                                 <NavButton id="wbs" active={activeView === 'wbs'} onClick={() => handleMenuClick('wbs')} icon={<Icons.Warning />} label="Whistleblowing" />
-                                
-                                <div className="mt-6 px-4 pt-4 border-t border-gray-100 dark:border-dark-border">
-                                    <button 
-                                        onClick={toggleEditMode} 
-                                        className={`w-full py-2.5 rounded-lg text-sm font-bold flex items-center justify-center transition-colors ${isEditMode ? 'bg-pink-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
-                                    >
-                                        <span className="mr-2">⚙️</span> {isEditMode ? 'Selesai Edit' : 'Mode Edit'}
-                                    </button>
-                                </div>
                             </nav>
                             
-                            <div className="p-4 border-t border-gray-100 dark:border-dark-border bg-gray-50 dark:bg-gray-900">
-                                <div className="bg-white dark:bg-dark-card p-4 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm relative">
-                                    <button onClick={() => setDarkMode(!darkMode)} className="absolute top-3 right-3 p-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-yellow-400">
+                            <div className="mt-auto p-4 border-t border-gray-100 dark:border-dark-border bg-gray-50 dark:bg-gray-900">
+                                <div className="flex gap-2 mb-4">
+                                    <button onClick={() => setDarkMode(!darkMode)} className="flex-1 py-2.5 flex items-center justify-center rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" title={darkMode ? "Mode Terang" : "Mode Gelap"}>
                                         {darkMode ? <Icons.Sun /> : <Icons.Moon />}
                                     </button>
+                                    <button onClick={toggleEditMode} title={isEditMode ? "Selesai Edit" : "Mode Edit"} className={`flex-1 py-2.5 flex items-center justify-center rounded-lg text-lg transition-colors ${isEditMode ? 'bg-pink-600 text-white shadow-md' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'}`}>
+                                        {isEditMode ? '✅' : '⚙️'}
+                                    </button>
+                                </div>
+                                <div className="bg-white dark:bg-dark-card p-4 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm relative">
                                     <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Butuh Bantuan?</p>
                                     <div className="flex items-center mb-3">
                                         <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300 mr-2">GA</div>
@@ -404,6 +436,72 @@
                             </div>
                         </div>
                     )}
+
+                    {showAccountModal && (
+                        <AccountModal 
+                            onClose={() => setShowAccountModal(false)} 
+                            onSave={handleSaveAccount} 
+                            initialData={editAccountData} 
+                            existingApps={[...new Set(dataAccounts.map(r => r.app).filter(Boolean))]} 
+                        />
+                    )}
+                </div>
+            );
+        }
+
+        function AddButtonPlaceholder({ onClick, title }) {
+            return (
+                <button onClick={onClick} className="h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50 hover:bg-pink-50 hover:border-pink-300 dark:hover:bg-pink-900/20 dark:hover:border-pink-700 transition-colors group">
+                    <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center text-gray-400 group-hover:text-pink-500 group-hover:scale-110 transition-transform shadow-sm mb-3">
+                        <Icons.Plus />
+                    </div>
+                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400 group-hover:text-pink-600">{title || "Tambah Tombol"}</span>
+                </button>
+            );
+        }
+
+        function HomeView({ setActiveView, dataApps, dataReports, dataMonitoring, dataDocuments }) {
+            return (
+                <div className="fade-in space-y-6 md:space-y-8">
+                    <header className="mb-6 md:mb-8">
+                        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-3">Halo, {USER_NAME} 👋</h2>
+                        <div className="bg-white dark:bg-dark-card border-l-4 border-pink-500 p-4 rounded-r-lg shadow-sm">
+                            <p className="text-gray-700 dark:text-gray-300 italic text-sm md:text-lg mb-4">"Ingat, hasil besar dimulai dari langkah kecil yang tak terputus. Kesuksesan bukan soal kecepatan, tapi soal ketahanan."</p>
+                        </div>
+                    </header>
+                    <div className="bg-gradient-to-r from-purple-700 to-pink-600 rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
+                        <div className="relative z-10">
+                            <h3 className="text-xl md:text-2xl font-bold mb-2 flex items-center"><span className="mr-2">🚀</span> {APP_TITLE} {APP_SUBTITLE}</h3>
+                            <p className="opacity-95 text-sm md:text-base max-w-3xl mb-6">Pusat akses tunggal kebutuhan operasional tim. Buka aplikasi, pantau laporan, dokumen SOP, dan project dengan cepat.</p>
+                            <button onClick={() => setActiveView('apps')} className="w-full sm:w-auto px-6 py-2.5 bg-white text-purple-700 font-bold rounded-lg shadow-lg hover:bg-gray-50 transition-transform transform hover:-translate-y-0.5">Mulai Akses Aplikasi</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center"><span className="w-1.5 h-6 bg-gray-400 rounded-full mr-3"></span>Statistik Menu Pintas</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                            <div onClick={() => setActiveView('apps')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors"><Icons.Grid /></div>
+                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Aplikasi</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataApps.length} Apps Tersedia</p>
+                            </div>
+                            <div onClick={() => setActiveView('reports')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-green-600 group-hover:text-white transition-colors"><Icons.Report /></div>
+                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Laporan</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataReports.length} Laporan</p>
+                            </div>
+                            <div onClick={() => setActiveView('monitoring')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors"><Icons.Monitor /></div>
+                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Monitoring</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataMonitoring.length} Dasbor</p>
+                            </div>
+                            <div onClick={() => setActiveView('documents')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-yellow-600 group-hover:text-white transition-colors"><Icons.Folder /></div>
+                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Dokumen</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataDocuments.length} Dokumen</p>
+                            </div>
+                            <div onClick={() => setActiveView('wbs')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-red-600 group-hover:text-white transition-colors"><Icons.Warning /></div>
+                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">WBS</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Lapor Pelanggaran</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             );
         }
@@ -530,6 +628,69 @@
             );
         }
 
+        function AccountModal({ onClose, onSave, initialData, existingApps }) {
+            const [user, setUser] = useState(initialData ? initialData.user : '');
+            const [pass, setPass] = useState(initialData ? initialData.pass : '');
+            const [appSelection, setAppSelection] = useState(initialData ? initialData.app : '');
+            const [customApp, setCustomApp] = useState('');
+            const [hub, setHub] = useState(initialData ? initialData.hub : '');
+            const [rute, setRute] = useState(initialData ? initialData.rute : '');
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const finalApp = appSelection === 'Lainnya' ? customApp : appSelection;
+                onSave({ user, pass, app: finalApp, hub, rute });
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+                    <div className="bg-white dark:bg-dark-card w-full max-w-md rounded-2xl shadow-2xl overflow-hidden fade-in">
+                        <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-border flex justify-between items-center bg-gray-50 dark:bg-gray-800">
+                            <h3 className="font-bold text-lg text-gray-800 dark:text-gray-100">{initialData ? 'Edit Akun' : 'Tambah Akun Baru'}</h3>
+                            <button onClick={onClose} className="text-gray-500 hover:text-gray-800 dark:hover:text-white"><Icons.X /></button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Username</label>
+                                    <input required type="text" value={user} onChange={e => setUser(e.target.value)} className="w-full px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                                    <input required type="text" value={pass} onChange={e => setPass(e.target.value)} className="w-full px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-sm" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Aplikasi</label>
+                                <select value={appSelection} onChange={e => setAppSelection(e.target.value)} className="w-full px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-sm mb-2" required>
+                                    <option value="">Pilih Aplikasi</option>
+                                    {existingApps.map(a => <option key={a} value={a}>{a}</option>)}
+                                    <option value="Lainnya">Tambah Baru (Lainnya)</option>
+                                </select>
+                                {appSelection === 'Lainnya' && (
+                                    <input required type="text" value={customApp} onChange={e => setCustomApp(e.target.value)} placeholder="Masukkan Nama Aplikasi Baru" className="w-full px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-sm" />
+                                )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">HUB</label>
+                                    <input required type="text" value={hub} onChange={e => setHub(e.target.value)} className="w-full px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-sm" placeholder="Contoh: MKS" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Rute</label>
+                                    <input type="text" value={rute} onChange={e => setRute(e.target.value)} className="w-full px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-sm" placeholder="Kosongkan jika tidak ada" />
+                                </div>
+                            </div>
+                            <div className="pt-4 flex gap-3">
+                                <button type="button" onClick={onClose} className="flex-1 py-2 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-bold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition">Batal</button>
+                                <button type="submit" className="flex-1 py-2 px-4 bg-pink-600 text-white font-bold rounded-lg hover:bg-pink-700 transition">Simpan Akun</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
         function ItemCard({ item, isEditMode, onDelete, onEdit }) {
             const hasMultipleLinks = item.links && item.links.length > 0;
             const useGridLayout = (hasMultipleLinks && item.links.length > 4) || item.fullWidthFirst;
@@ -588,64 +749,7 @@
             );
         }
 
-        function AddButtonPlaceholder({ onClick, title }) {
-            return (
-                <button onClick={onClick} className="h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50 hover:bg-pink-50 hover:border-pink-300 dark:hover:bg-pink-900/20 dark:hover:border-pink-700 transition-colors group">
-                    <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center text-gray-400 group-hover:text-pink-500 group-hover:scale-110 transition-transform shadow-sm mb-3">
-                        <Icons.Plus />
-                    </div>
-                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400 group-hover:text-pink-600">{title || "Tambah Tombol"}</span>
-                </button>
-            );
-        }
-
-        function HomeView({ setActiveView, dataApps, dataReports, dataMonitoring, dataDocuments }) {
-            return (
-                <div className="fade-in space-y-6 md:space-y-8">
-                    <header className="mb-6 md:mb-8">
-                        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-3">Halo, {USER_NAME} 👋</h2>
-                        <div className="bg-white dark:bg-dark-card border-l-4 border-pink-500 p-4 rounded-r-lg shadow-sm">
-                            <p className="text-gray-700 dark:text-gray-300 italic text-sm md:text-lg mb-4">"Ingat, hasil besar dimulai dari langkah kecil yang tak terputus. Kesuksesan bukan soal kecepatan, tapi soal ketahanan."</p>
-                        </div>
-                    </header>
-                    <div className="bg-gradient-to-r from-purple-700 to-pink-600 rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
-                        <div className="relative z-10">
-                            <h3 className="text-xl md:text-2xl font-bold mb-2 flex items-center"><span className="mr-2">🚀</span> {APP_TITLE} {APP_SUBTITLE}</h3>
-                            <p className="opacity-95 text-sm md:text-base max-w-3xl mb-6">Pusat akses tunggal kebutuhan operasional tim. Buka aplikasi, pantau laporan, dokumen SOP, dan project dengan cepat.</p>
-                            <button onClick={() => setActiveView('apps')} className="w-full sm:w-auto px-6 py-2.5 bg-white text-purple-700 font-bold rounded-lg shadow-lg hover:bg-gray-50 transition-transform transform hover:-translate-y-0.5">Mulai Akses Aplikasi</button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center"><span className="w-1.5 h-6 bg-gray-400 rounded-full mr-3"></span>Statistik Menu Pintas</h3>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-                            <div onClick={() => setActiveView('apps')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors"><Icons.Grid /></div>
-                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Aplikasi</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataApps.length} Apps Tersedia</p>
-                            </div>
-                            <div onClick={() => setActiveView('reports')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-green-600 group-hover:text-white transition-colors"><Icons.Report /></div>
-                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Laporan</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataReports.length} Laporan</p>
-                            </div>
-                            <div onClick={() => setActiveView('monitoring')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors"><Icons.Monitor /></div>
-                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Monitoring</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataMonitoring.length} Dasbor</p>
-                            </div>
-                            <div onClick={() => setActiveView('documents')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-yellow-600 group-hover:text-white transition-colors"><Icons.Folder /></div>
-                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Dokumen</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataDocuments.length} Dokumen</p>
-                            </div>
-                            <div onClick={() => setActiveView('wbs')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-red-600 group-hover:text-white transition-colors"><Icons.Warning /></div>
-                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">WBS</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Lapor Pelanggaran</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        function AppsView({ data, isEditMode, onDelete, onEdit, onAdd }) {
+        function AppsView({ data, dataAccounts, isEditMode, onDelete, onEdit, onAdd, onDeleteAccount, onEditAccount, onAddAccount }) {
             const [searchQuery, setSearchQuery] = useState("");
             const [filterAppType, setFilterAppType] = useState('All');
             const [filterHub, setFilterHub] = useState('All');
@@ -655,10 +759,10 @@
                 (app.desc && app.desc.toLowerCase().includes(searchQuery.toLowerCase()))
             );
 
-            const uniqueHubs = ['All', ...new Set(ACCOUNT_DATA.map(r => r.hub).filter(Boolean))].sort();
-            const uniqueApps = ['All', ...new Set(ACCOUNT_DATA.map(r => r.app).filter(Boolean))].sort();
+            const uniqueHubs = ['All', ...new Set(dataAccounts.map(r => r.hub).filter(Boolean))].sort();
+            const uniqueApps = ['All', ...new Set(dataAccounts.map(r => r.app).filter(Boolean))].sort();
 
-            const filteredRiders = ACCOUNT_DATA.filter(rider => {
+            const filteredRiders = dataAccounts.filter(rider => {
                 const matchSearch = rider.user.includes(searchQuery) || 
                                     (rider.hub && rider.hub.toLowerCase().includes(searchQuery.toLowerCase())) ||
                                     (rider.rute && rider.rute.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -700,6 +804,11 @@
                             </h3>
                             
                             <div className="flex flex-row sm:flex-row gap-2 w-full md:w-auto">
+                                {isEditMode && (
+                                    <button onClick={onAddAccount} className="bg-pink-600 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-pink-700 shadow-sm whitespace-nowrap">
+                                        + Tambah Akun
+                                    </button>
+                                )}
                                 <div className="relative w-1/2 sm:w-auto">
                                     <select 
                                         value={filterAppType} 
@@ -733,11 +842,14 @@
                                         <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700 whitespace-nowrap">App</th>
                                         <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700 whitespace-nowrap">HUB</th>
                                         <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700 whitespace-nowrap">Rute</th>
+                                        {isEditMode && <th className="px-4 py-3 bg-gray-100 dark:bg-gray-700 whitespace-nowrap">Aksi</th>}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredRiders.length > 0 ? (
-                                        filteredRiders.map((rider, index) => (
+                                        filteredRiders.map((rider, index) => {
+                                            const actualIndex = dataAccounts.findIndex(acc => acc === rider);
+                                            return (
                                             <tr key={index} className="bg-white border-b dark:bg-dark-card dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                                                 <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap">
                                                     <div className="flex items-center justify-between">
@@ -754,11 +866,19 @@
                                                 <td className="px-4 py-3 whitespace-nowrap"><span className="bg-pink-100 text-pink-800 text-xs font-medium px-2 py-0.5 rounded dark:bg-pink-900 dark:text-pink-300">{rider.app}</span></td>
                                                 <td className="px-4 py-3 font-bold whitespace-nowrap">{rider.hub}</td>
                                                 <td className="px-4 py-3 text-xs whitespace-nowrap">{rider.rute || "-"}</td>
+                                                {isEditMode && (
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => onEditAccount(actualIndex, rider)} className="text-blue-500 hover:text-blue-700"><Icons.Edit /></button>
+                                                            <button onClick={() => onDeleteAccount(actualIndex)} className="text-red-500 hover:text-red-700"><Icons.Trash /></button>
+                                                        </div>
+                                                    </td>
+                                                )}
                                             </tr>
-                                        ))
+                                        )})
                                     ) : (
                                         <tr>
-                                            <td colSpan="5" className="px-6 py-8 text-center text-gray-400">
+                                            <td colSpan={isEditMode ? "6" : "5"} className="px-6 py-8 text-center text-gray-400">
                                                 Data akun tidak ditemukan.
                                             </td>
                                         </tr>
@@ -767,7 +887,7 @@
                             </table>
                         </div>
                         <div className="p-3 bg-gray-50 dark:bg-gray-800 text-center text-[10px] text-gray-400 font-medium">
-                            Menampilkan {filteredRiders.length} dari {ACCOUNT_DATA.length} Akun
+                            Menampilkan {filteredRiders.length} dari {dataAccounts.length} Akun
                         </div>
                     </div>
                 </div>
