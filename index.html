@@ -185,6 +185,30 @@
             Check: () => <svg className="w-4 h-4 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
         };
 
+        const getGridClass = (cols) => {
+            if (cols === 2) return "grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-8";
+            if (cols === 3) return "grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4 mb-8";
+            if (cols === 4) return "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 mb-8";
+            if (cols === 5) return "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4 mb-8";
+            if (cols === 6) return "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 md:gap-4 mb-8";
+            if (cols === 7) return "grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 md:gap-4 mb-8";
+            if (cols === 8) return "grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3 md:gap-4 mb-8";
+            return "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 mb-8";
+        };
+
+        function GridControl({ section, gridCols, setGridCols }) {
+            return (
+                <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-300">
+                    <span>Kolom Desktop:</span>
+                    {[2, 3, 4, 5, 6, 7, 8].map(num => (
+                        <button key={num} onClick={() => setGridCols(prev => ({ ...prev, [section]: num }))} className={`w-6 h-6 rounded flex items-center justify-center ${gridCols[section] === num ? 'bg-pink-600 text-white' : 'bg-white dark:bg-gray-700 hover:bg-gray-200'}`}>
+                            {num}
+                        </button>
+                    ))}
+                </div>
+            );
+        }
+
         const handleLinkClick = (e, url) => {
             if (url === '#' || url === '' || !url) {
                 e.preventDefault();
@@ -213,6 +237,7 @@
             const [showAccountModal, setShowAccountModal] = useState(false);
             const [editAccountData, setEditAccountData] = useState(null);
             const [editAccountIndex, setEditAccountIndex] = useState(null);
+            const [gridCols, setGridCols] = useState({ apps: 4, reports: 4, monitoring: 4, documents: 2 });
 
             useEffect(() => {
                 if (darkMode) document.documentElement.classList.add('dark');
@@ -321,10 +346,10 @@
             const renderContent = () => {
                 switch(activeView) {
                     case 'home': return <HomeView setActiveView={handleMenuClick} dataApps={dataApps} dataReports={dataReports} dataMonitoring={dataMonitoring} dataDocuments={dataDocuments} />;
-                    case 'apps': return <AppsView data={dataApps} dataAccounts={dataAccounts} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('apps')} onDeleteAccount={handleDeleteAccount} onEditAccount={openEditAccountModal} onAddAccount={openAddAccountModal} />;
-                    case 'reports': return <ReportsView data={dataReports} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('reports')} />;
-                    case 'monitoring': return <MonitoringView data={dataMonitoring} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('monitoring')} />;
-                    case 'documents': return <DocumentsView data={dataDocuments} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('documents')} />;
+                    case 'apps': return <AppsView data={dataApps} dataAccounts={dataAccounts} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('apps')} onDeleteAccount={handleDeleteAccount} onEditAccount={openEditAccountModal} onAddAccount={openAddAccountModal} gridCols={gridCols} setGridCols={setGridCols} />;
+                    case 'reports': return <ReportsView data={dataReports} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('reports')} gridCols={gridCols} setGridCols={setGridCols} />;
+                    case 'monitoring': return <MonitoringView data={dataMonitoring} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('monitoring')} gridCols={gridCols} setGridCols={setGridCols} />;
+                    case 'documents': return <DocumentsView data={dataDocuments} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('documents')} gridCols={gridCols} setGridCols={setGridCols} />;
                     case 'wbs': return <WhistleblowingView />;
                     default: return <HomeView setActiveView={handleMenuClick} dataApps={dataApps} dataReports={dataReports} dataMonitoring={dataMonitoring} dataDocuments={dataDocuments} />;
                 }
@@ -448,63 +473,6 @@
                             existingApps={[...new Set(dataAccounts.map(r => r.app).filter(Boolean))]} 
                         />
                     )}
-                </div>
-            );
-        }
-
-        function AddButtonPlaceholder({ onClick, title }) {
-            return (
-                <button onClick={onClick} className="h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50 hover:bg-pink-50 hover:border-pink-300 dark:hover:bg-pink-900/20 dark:hover:border-pink-700 transition-colors group">
-                    <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center text-gray-400 group-hover:text-pink-500 group-hover:scale-110 transition-transform shadow-sm mb-3">
-                        <Icons.Plus />
-                    </div>
-                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400 group-hover:text-pink-600">{title || "Tambah Tombol"}</span>
-                </button>
-            );
-        }
-
-        function HomeView({ setActiveView, dataApps, dataReports, dataMonitoring, dataDocuments }) {
-            return (
-                <div className="fade-in space-y-6 md:space-y-8">
-                    <header className="mb-6 md:mb-8">
-                        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-3">Halo, {USER_NAME} 👋</h2>
-                        <div className="bg-white dark:bg-dark-card border-l-4 border-pink-500 p-4 rounded-r-lg shadow-sm">
-                            <p className="text-gray-700 dark:text-gray-300 italic text-sm md:text-lg mb-4">"Ingat, hasil besar dimulai dari langkah kecil yang tak terputus. Kesuksesan bukan soal kecepatan, tapi soal ketahanan."</p>
-                        </div>
-                    </header>
-                    <div className="bg-gradient-to-r from-purple-700 to-pink-600 rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
-                        <div className="relative z-10">
-                            <h3 className="text-xl md:text-2xl font-bold mb-2 flex items-center"><span className="mr-2">🚀</span> {APP_TITLE} {APP_SUBTITLE}</h3>
-                            <p className="opacity-95 text-sm md:text-base max-w-3xl mb-6">Pusat akses tunggal kebutuhan operasional tim. Buka aplikasi, pantau laporan, dokumen SOP, dan project dengan cepat.</p>
-                            <button onClick={() => setActiveView('apps')} className="w-full sm:w-auto px-6 py-2.5 bg-white text-purple-700 font-bold rounded-lg shadow-lg hover:bg-gray-50 transition-transform transform hover:-translate-y-0.5">Mulai Akses Aplikasi</button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center"><span className="w-1.5 h-6 bg-gray-400 rounded-full mr-3"></span>Statistik Menu Pintas</h3>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-                            <div onClick={() => setActiveView('apps')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors"><Icons.Grid /></div>
-                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Aplikasi</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataApps.length} Apps Tersedia</p>
-                            </div>
-                            <div onClick={() => setActiveView('reports')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-green-600 group-hover:text-white transition-colors"><Icons.Report /></div>
-                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Laporan</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataReports.length} Laporan</p>
-                            </div>
-                            <div onClick={() => setActiveView('monitoring')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors"><Icons.Monitor /></div>
-                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Monitoring</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataMonitoring.length} Dasbor</p>
-                            </div>
-                            <div onClick={() => setActiveView('documents')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-yellow-600 group-hover:text-white transition-colors"><Icons.Folder /></div>
-                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Dokumen</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataDocuments.length} Dokumen</p>
-                            </div>
-                            <div onClick={() => setActiveView('wbs')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-red-600 group-hover:text-white transition-colors"><Icons.Warning /></div>
-                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">WBS</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Lapor Pelanggaran</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             );
         }
@@ -752,7 +720,64 @@
             );
         }
 
-        function AppsView({ data, dataAccounts, isEditMode, onDelete, onEdit, onAdd, onDeleteAccount, onEditAccount, onAddAccount }) {
+        function AddButtonPlaceholder({ onClick, title }) {
+            return (
+                <button onClick={onClick} className="h-full min-h-[160px] flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50 hover:bg-pink-50 hover:border-pink-300 dark:hover:bg-pink-900/20 dark:hover:border-pink-700 transition-colors group">
+                    <div className="w-12 h-12 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center text-gray-400 group-hover:text-pink-500 group-hover:scale-110 transition-transform shadow-sm mb-3">
+                        <Icons.Plus />
+                    </div>
+                    <span className="text-sm font-bold text-gray-500 dark:text-gray-400 group-hover:text-pink-600">{title || "Tambah Tombol"}</span>
+                </button>
+            );
+        }
+
+        function HomeView({ setActiveView, dataApps, dataReports, dataMonitoring, dataDocuments }) {
+            return (
+                <div className="fade-in space-y-6 md:space-y-8">
+                    <header className="mb-6 md:mb-8">
+                        <h2 className="text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-3">Halo, {USER_NAME} 👋</h2>
+                        <div className="bg-white dark:bg-dark-card border-l-4 border-pink-500 p-4 rounded-r-lg shadow-sm">
+                            <p className="text-gray-700 dark:text-gray-300 italic text-sm md:text-lg mb-4">"Ingat, hasil besar dimulai dari langkah kecil yang tak terputus. Kesuksesan bukan soal kecepatan, tapi soal ketahanan."</p>
+                        </div>
+                    </header>
+                    <div className="bg-gradient-to-r from-purple-700 to-pink-600 rounded-2xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
+                        <div className="relative z-10">
+                            <h3 className="text-xl md:text-2xl font-bold mb-2 flex items-center"><span className="mr-2">🚀</span> {APP_TITLE} {APP_SUBTITLE}</h3>
+                            <p className="opacity-95 text-sm md:text-base max-w-3xl mb-6">Pusat akses tunggal kebutuhan operasional tim. Buka aplikasi, pantau laporan, dokumen SOP, dan project dengan cepat.</p>
+                            <button onClick={() => setActiveView('apps')} className="w-full sm:w-auto px-6 py-2.5 bg-white text-purple-700 font-bold rounded-lg shadow-lg hover:bg-gray-50 transition-transform transform hover:-translate-y-0.5">Mulai Akses Aplikasi</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center"><span className="w-1.5 h-6 bg-gray-400 rounded-full mr-3"></span>Statistik Menu Pintas</h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                            <div onClick={() => setActiveView('apps')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors"><Icons.Grid /></div>
+                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Aplikasi</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataApps.length} Apps Tersedia</p>
+                            </div>
+                            <div onClick={() => setActiveView('reports')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-green-600 group-hover:text-white transition-colors"><Icons.Report /></div>
+                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Laporan</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataReports.length} Laporan</p>
+                            </div>
+                            <div onClick={() => setActiveView('monitoring')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors"><Icons.Monitor /></div>
+                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Monitoring</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataMonitoring.length} Dasbor</p>
+                            </div>
+                            <div onClick={() => setActiveView('documents')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-yellow-100 text-yellow-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-yellow-600 group-hover:text-white transition-colors"><Icons.Folder /></div>
+                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">Dokumen</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">{dataDocuments.length} Dokumen</p>
+                            </div>
+                            <div onClick={() => setActiveView('wbs')} className="bg-white dark:bg-dark-card p-4 md:p-5 rounded-xl border border-gray-200 dark:border-dark-border shadow-sm hover:border-pink-300 cursor-pointer transition-all hover:-translate-y-1 group">
+                                <div className="w-8 h-8 md:w-10 md:h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mb-2 md:mb-3 group-hover:bg-red-600 group-hover:text-white transition-colors"><Icons.Warning /></div>
+                                <h4 className="font-bold text-sm md:text-base text-gray-800 dark:text-gray-100">WBS</h4><p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Lapor Pelanggaran</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function AppsView({ data, dataAccounts, isEditMode, onDelete, onEdit, onAdd, onDeleteAccount, onEditAccount, onAddAccount, gridCols, setGridCols }) {
             const [searchQuery, setSearchQuery] = useState("");
             const [filterAppType, setFilterAppType] = useState('All');
             const [filterHub, setFilterHub] = useState('All');
@@ -787,13 +812,16 @@
                             <h2 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">Aplikasi Internal</h2>
                             <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Akses aplikasi dan tool pendukung.</p>
                         </div>
-                         <div className="relative w-full md:w-auto">
-                            <input type="text" placeholder="Cari aplikasi..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full md:w-72 pl-8 pr-4 py-2 border rounded-lg text-sm bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500" />
-                            <div className="absolute left-2.5 top-2.5 text-gray-400"><Icons.Grid className="w-4 h-4" /></div>
+                         <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                            {isEditMode && <GridControl section="apps" gridCols={gridCols} setGridCols={setGridCols} />}
+                            <div className="relative w-full md:w-auto">
+                                <input type="text" placeholder="Cari aplikasi..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full md:w-72 pl-8 pr-4 py-2 border rounded-lg text-sm bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500" />
+                                <div className="absolute left-2.5 top-2.5 text-gray-400"><Icons.Grid className="w-4 h-4" /></div>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-6 mb-8">
+                    <div className={getGridClass(gridCols.apps)}>
                         {filteredApps.map((app, idx) => (
                             <ItemCard key={idx} item={app} isEditMode={isEditMode} onDelete={() => onDelete('apps', idx)} onEdit={() => onEdit('apps', idx, app)} />
                         ))}
@@ -897,17 +925,22 @@
             );
         }
 
-        function ReportsView({ data, isEditMode, onDelete, onEdit, onAdd }) {
+        function ReportsView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, setGridCols }) {
             const categories = ['Daily', 'Inbound', 'Outbound', 'Handover'];
             
             return (
                 <div className="fade-in space-y-8 md:space-y-10">
-                    <div className="mb-4 md:mb-6 border-b border-gray-200 dark:border-dark-border pb-4 flex justify-between items-center">
+                    <div className="mb-4 md:mb-6 border-b border-gray-200 dark:border-dark-border pb-4 flex justify-between items-center flex-wrap gap-4">
                         <div>
                             <h2 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">Laporan & Kinerja</h2>
                             <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Akses data laporan operasional.</p>
                         </div>
-                        {isEditMode && <button onClick={onAdd} className="bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-pink-700 shadow-sm">+ Tambah Baru</button>}
+                        {isEditMode && (
+                            <div className="flex items-center gap-3">
+                                <GridControl section="reports" gridCols={gridCols} setGridCols={setGridCols} />
+                                <button onClick={onAdd} className="bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-pink-700 shadow-sm">+ Tambah Baru</button>
+                            </div>
+                        )}
                     </div>
                     
                     {categories.map(cat => {
@@ -917,7 +950,7 @@
                         return (
                             <div key={cat}>
                                 <h3 className="text-base md:text-lg font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center"><span className="w-1.5 h-6 bg-blue-600 rounded-full mr-3"></span>Kategori: {cat}</h3>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+                                <div className={getGridClass(gridCols.reports)}>
                                     {items.map((item, idx) => <ItemCard key={idx} item={item} isEditMode={isEditMode} onDelete={() => {
                                         const actualIndex = data.findIndex(d => d === item);
                                         onDelete('reports', actualIndex);
@@ -934,15 +967,18 @@
             );
         }
 
-        function MonitoringView({ data, isEditMode, onDelete, onEdit, onAdd }) {
+        function MonitoringView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, setGridCols }) {
             return (
                 <div className="fade-in">
-                    <div className="mb-4 md:mb-6 border-b border-gray-200 dark:border-dark-border pb-4">
-                        <h2 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">Monitoring</h2>
-                        <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Pantau pergerakan paket dan kinerja HUB.</p>
+                    <div className="mb-4 md:mb-6 border-b border-gray-200 dark:border-dark-border pb-4 flex justify-between items-center flex-wrap gap-4">
+                        <div>
+                            <h2 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">Monitoring</h2>
+                            <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Pantau pergerakan paket dan kinerja HUB.</p>
+                        </div>
+                        {isEditMode && <GridControl section="monitoring" gridCols={gridCols} setGridCols={setGridCols} />}
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4">
+                    <div className={getGridClass(gridCols.monitoring)}>
                         {data.map((item, idx) => (
                             <ItemCard key={idx} item={item} isEditMode={isEditMode} onDelete={() => onDelete('monitoring', idx)} onEdit={() => onEdit('monitoring', idx, item)} />
                         ))}
@@ -952,17 +988,22 @@
             );
         }
 
-        function DocumentsView({ data, isEditMode, onDelete, onEdit, onAdd }) {
+        function DocumentsView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, setGridCols }) {
             const categories = ['Program & Kompetisi', 'Project & Improvement', 'SOP & Panduan Operasional'];
 
             return (
                 <div className="fade-in space-y-8 md:space-y-10">
-                    <div className="mb-4 md:mb-6 border-b border-gray-200 dark:border-dark-border pb-4 flex justify-between items-center">
+                    <div className="mb-4 md:mb-6 border-b border-gray-200 dark:border-dark-border pb-4 flex justify-between items-center flex-wrap gap-4">
                         <div>
                             <h2 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">Dokumen & Arsip</h2>
                             <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Pusat penyimpanan dokumen, panduan, dan materi training.</p>
                         </div>
-                        {isEditMode && <button onClick={onAdd} className="bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-pink-700 shadow-sm">+ Tambah Dokumen</button>}
+                        {isEditMode && (
+                            <div className="flex items-center gap-3">
+                                <GridControl section="documents" gridCols={gridCols} setGridCols={setGridCols} />
+                                <button onClick={onAdd} className="bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-pink-700 shadow-sm">+ Tambah Dokumen</button>
+                            </div>
+                        )}
                     </div>
 
                     {categories.map(cat => {
@@ -975,7 +1016,7 @@
                                     <span className="w-1.5 h-6 bg-gray-500 rounded-full mr-3"></span>
                                     {cat}
                                 </h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                                <div className={getGridClass(gridCols.documents)}>
                                     {items.map((item, idx) => (
                                         <ItemCard key={idx} item={item} isEditMode={isEditMode} onDelete={() => {
                                             const actualIndex = data.findIndex(d => d === item);
