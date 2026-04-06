@@ -196,12 +196,12 @@
             return "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 mb-8";
         };
 
-        function GridControl({ section, gridCols, setGridCols }) {
+        function GridControl({ section, gridCols, onGridChange }) {
             return (
                 <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-300">
                     <span>Kolom Desktop:</span>
                     {[2, 3, 4, 5, 6, 7, 8].map(num => (
-                        <button key={num} onClick={() => setGridCols(prev => ({ ...prev, [section]: num }))} className={`w-6 h-6 rounded flex items-center justify-center ${gridCols[section] === num ? 'bg-pink-600 text-white' : 'bg-white dark:bg-gray-700 hover:bg-gray-200'}`}>
+                        <button key={num} onClick={() => onGridChange(section, num)} className={`w-6 h-6 rounded flex items-center justify-center ${gridCols[section] === num ? 'bg-pink-600 text-white' : 'bg-white dark:bg-gray-700 hover:bg-gray-200'}`}>
                             {num}
                         </button>
                     ))}
@@ -239,10 +239,77 @@
             const [editAccountIndex, setEditAccountIndex] = useState(null);
             const [gridCols, setGridCols] = useState({ apps: 4, reports: 4, monitoring: 4, documents: 2 });
 
+            const [firebaseDb, setFirebaseDb] = useState(null);
+            const [user, setUser] = useState(null);
+            const [appId, setAppId] = useState('default-app-id');
+
             useEffect(() => {
                 if (darkMode) document.documentElement.classList.add('dark');
                 else document.documentElement.classList.remove('dark');
             }, [darkMode]);
+
+            useEffect(() => {
+                let unsubscribeAuth = () => {};
+                const setupFirebase = async () => {
+                    try {
+                        const { initializeApp } = await eval('import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js")');
+                        const { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } = await eval('import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js")');
+                        const firestore = await eval('import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js")');
+                        const { getFirestore } = firestore;
+                        window.FirestoreFunctions = firestore;
+
+                        const configStr = typeof __firebase_config !== 'undefined' ? __firebase_config : '{}';
+                        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                        setAppId(currentAppId);
+
+                        if(configStr !== '{}') {
+                            const app = initializeApp(JSON.parse(configStr));
+                            const auth = getAuth(app);
+                            setFirebaseDb(getFirestore(app));
+
+                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                await signInWithCustomToken(auth, __initial_auth_token);
+                            } else {
+                                await signInAnonymously(auth);
+                            }
+
+                            unsubscribeAuth = onAuthStateChanged(auth, setUser);
+                        }
+                    } catch(e) { console.error("Firebase init error", e); }
+                };
+                setupFirebase();
+                return () => unsubscribeAuth();
+            }, []);
+
+            useEffect(() => {
+                if (!user || !firebaseDb || !window.FirestoreFunctions) return;
+                const { doc, onSnapshot, setDoc } = window.FirestoreFunctions;
+                const docRef = doc(firebaseDb, 'artifacts', appId, 'public', 'data', 'dashboard', 'settings');
+                
+                const unsubscribe = onSnapshot(docRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if(data.dataApps) setDataApps(data.dataApps);
+                        if(data.dataReports) setDataReports(data.dataReports);
+                        if(data.dataMonitoring) setDataMonitoring(data.dataMonitoring);
+                        if(data.dataDocuments) setDataDocuments(data.dataDocuments);
+                        if(data.dataAccounts) setDataAccounts(data.dataAccounts);
+                        if(data.gridCols) setGridCols(data.gridCols);
+                    } else {
+                        setDoc(docRef, { dataApps: INITIAL_APPS, dataReports: INITIAL_REPORTS, dataMonitoring: INITIAL_MONITORING, dataDocuments: INITIAL_DOCUMENTS, dataAccounts: ACCOUNT_DATA, gridCols: { apps: 4, reports: 4, monitoring: 4, documents: 2 } });
+                    }
+                }, error => console.error("Snapshot error:", error));
+
+                return () => unsubscribe();
+            }, [user, firebaseDb, appId]);
+
+            const saveToCloud = async (updates) => {
+                if (!user || !firebaseDb || !window.FirestoreFunctions) return;
+                const { doc, setDoc } = window.FirestoreFunctions;
+                const docRef = doc(firebaseDb, 'artifacts', appId, 'public', 'data', 'dashboard', 'settings');
+                try { await setDoc(docRef, updates, { merge: true }); } 
+                catch (e) { console.error("Error saving:", e); }
+            };
 
             const handleMenuClick = (viewId) => {
                 setActiveView(viewId);
@@ -251,10 +318,10 @@
 
             const handleDelete = (section, index) => {
                 if (!confirm("Hapus item ini?")) return;
-                if (section === 'apps') setDataApps(prev => prev.filter((_, i) => i !== index));
-                else if (section === 'reports') setDataReports(prev => prev.filter((_, i) => i !== index));
-                else if (section === 'monitoring') setDataMonitoring(prev => prev.filter((_, i) => i !== index));
-                else if (section === 'documents') setDataDocuments(prev => prev.filter((_, i) => i !== index));
+                if (section === 'apps') { const n = dataApps.filter((_, i) => i !== index); setDataApps(n); saveToCloud({dataApps: n}); }
+                else if (section === 'reports') { const n = dataReports.filter((_, i) => i !== index); setDataReports(n); saveToCloud({dataReports: n}); }
+                else if (section === 'monitoring') { const n = dataMonitoring.filter((_, i) => i !== index); setDataMonitoring(n); saveToCloud({dataMonitoring: n}); }
+                else if (section === 'documents') { const n = dataDocuments.filter((_, i) => i !== index); setDataDocuments(n); saveToCloud({dataDocuments: n}); }
             };
 
             const handleSaveItem = (newItem, section) => {
@@ -267,10 +334,10 @@
                     return [...prev, newItem];
                 };
 
-                if (section === 'apps') setDataApps(prev => updateArray(prev));
-                else if (section === 'reports') setDataReports(prev => updateArray(prev));
-                else if (section === 'monitoring') setDataMonitoring(prev => updateArray(prev));
-                else if (section === 'documents') setDataDocuments(prev => updateArray(prev));
+                if (section === 'apps') { const n = updateArray(dataApps); setDataApps(n); saveToCloud({dataApps: n}); }
+                else if (section === 'reports') { const n = updateArray(dataReports); setDataReports(n); saveToCloud({dataReports: n}); }
+                else if (section === 'monitoring') { const n = updateArray(dataMonitoring); setDataMonitoring(n); saveToCloud({dataMonitoring: n}); }
+                else if (section === 'documents') { const n = updateArray(dataDocuments); setDataDocuments(n); saveToCloud({dataDocuments: n}); }
                 
                 setShowAddModal(false);
                 setEditItemData(null);
@@ -279,22 +346,30 @@
 
             const handleDeleteAccount = (index) => {
                 if (!confirm("Hapus akun ini?")) return;
-                setDataAccounts(prev => prev.filter((_, i) => i !== index));
+                const n = dataAccounts.filter((_, i) => i !== index);
+                setDataAccounts(n);
+                saveToCloud({dataAccounts: n});
             };
 
             const handleSaveAccount = (newAccount) => {
+                let n;
                 if (editAccountIndex !== null) {
-                    setDataAccounts(prev => {
-                        const newArr = [...prev];
-                        newArr[editAccountIndex] = newAccount;
-                        return newArr;
-                    });
+                    n = [...dataAccounts];
+                    n[editAccountIndex] = newAccount;
                 } else {
-                    setDataAccounts(prev => [...prev, newAccount]);
+                    n = [...dataAccounts, newAccount];
                 }
+                setDataAccounts(n);
+                saveToCloud({dataAccounts: n});
                 setShowAccountModal(false);
                 setEditAccountData(null);
                 setEditAccountIndex(null);
+            };
+
+            const handleGridChange = (section, num) => {
+                const n = { ...gridCols, [section]: num };
+                setGridCols(n);
+                saveToCloud({gridCols: n});
             };
 
             const openAddAccountModal = () => {
@@ -346,10 +421,10 @@
             const renderContent = () => {
                 switch(activeView) {
                     case 'home': return <HomeView setActiveView={handleMenuClick} dataApps={dataApps} dataReports={dataReports} dataMonitoring={dataMonitoring} dataDocuments={dataDocuments} />;
-                    case 'apps': return <AppsView data={dataApps} dataAccounts={dataAccounts} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('apps')} onDeleteAccount={handleDeleteAccount} onEditAccount={openEditAccountModal} onAddAccount={openAddAccountModal} gridCols={gridCols} setGridCols={setGridCols} />;
-                    case 'reports': return <ReportsView data={dataReports} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('reports')} gridCols={gridCols} setGridCols={setGridCols} />;
-                    case 'monitoring': return <MonitoringView data={dataMonitoring} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('monitoring')} gridCols={gridCols} setGridCols={setGridCols} />;
-                    case 'documents': return <DocumentsView data={dataDocuments} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('documents')} gridCols={gridCols} setGridCols={setGridCols} />;
+                    case 'apps': return <AppsView data={dataApps} dataAccounts={dataAccounts} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('apps')} onDeleteAccount={handleDeleteAccount} onEditAccount={openEditAccountModal} onAddAccount={openAddAccountModal} gridCols={gridCols} onGridChange={handleGridChange} />;
+                    case 'reports': return <ReportsView data={dataReports} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('reports')} gridCols={gridCols} onGridChange={handleGridChange} />;
+                    case 'monitoring': return <MonitoringView data={dataMonitoring} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('monitoring')} gridCols={gridCols} onGridChange={handleGridChange} />;
+                    case 'documents': return <DocumentsView data={dataDocuments} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('documents')} gridCols={gridCols} onGridChange={handleGridChange} />;
                     case 'wbs': return <WhistleblowingView />;
                     default: return <HomeView setActiveView={handleMenuClick} dataApps={dataApps} dataReports={dataReports} dataMonitoring={dataMonitoring} dataDocuments={dataDocuments} />;
                 }
@@ -777,7 +852,7 @@
             );
         }
 
-        function AppsView({ data, dataAccounts, isEditMode, onDelete, onEdit, onAdd, onDeleteAccount, onEditAccount, onAddAccount, gridCols, setGridCols }) {
+        function AppsView({ data, dataAccounts, isEditMode, onDelete, onEdit, onAdd, onDeleteAccount, onEditAccount, onAddAccount, gridCols, onGridChange }) {
             const [searchQuery, setSearchQuery] = useState("");
             const [filterAppType, setFilterAppType] = useState('All');
             const [filterHub, setFilterHub] = useState('All');
@@ -813,7 +888,7 @@
                             <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Akses aplikasi dan tool pendukung.</p>
                         </div>
                          <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-                            {isEditMode && <GridControl section="apps" gridCols={gridCols} setGridCols={setGridCols} />}
+                            {isEditMode && <GridControl section="apps" gridCols={gridCols} onGridChange={onGridChange} />}
                             <div className="relative w-full md:w-auto">
                                 <input type="text" placeholder="Cari aplikasi..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full md:w-72 pl-8 pr-4 py-2 border rounded-lg text-sm bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500" />
                                 <div className="absolute left-2.5 top-2.5 text-gray-400"><Icons.Grid className="w-4 h-4" /></div>
@@ -925,7 +1000,7 @@
             );
         }
 
-        function ReportsView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, setGridCols }) {
+        function ReportsView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, onGridChange }) {
             const categories = ['Daily', 'Inbound', 'Outbound', 'Handover'];
             
             return (
@@ -937,7 +1012,7 @@
                         </div>
                         {isEditMode && (
                             <div className="flex items-center gap-3">
-                                <GridControl section="reports" gridCols={gridCols} setGridCols={setGridCols} />
+                                <GridControl section="reports" gridCols={gridCols} onGridChange={onGridChange} />
                                 <button onClick={onAdd} className="bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-pink-700 shadow-sm">+ Tambah Baru</button>
                             </div>
                         )}
@@ -967,7 +1042,7 @@
             );
         }
 
-        function MonitoringView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, setGridCols }) {
+        function MonitoringView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, onGridChange }) {
             return (
                 <div className="fade-in">
                     <div className="mb-4 md:mb-6 border-b border-gray-200 dark:border-dark-border pb-4 flex justify-between items-center flex-wrap gap-4">
@@ -975,7 +1050,7 @@
                             <h2 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">Monitoring</h2>
                             <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Pantau pergerakan paket dan kinerja HUB.</p>
                         </div>
-                        {isEditMode && <GridControl section="monitoring" gridCols={gridCols} setGridCols={setGridCols} />}
+                        {isEditMode && <GridControl section="monitoring" gridCols={gridCols} onGridChange={onGridChange} />}
                     </div>
 
                     <div className={getGridClass(gridCols.monitoring)}>
@@ -988,7 +1063,7 @@
             );
         }
 
-        function DocumentsView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, setGridCols }) {
+        function DocumentsView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, onGridChange }) {
             const categories = ['Program & Kompetisi', 'Project & Improvement', 'SOP & Panduan Operasional'];
 
             return (
@@ -1000,7 +1075,7 @@
                         </div>
                         {isEditMode && (
                             <div className="flex items-center gap-3">
-                                <GridControl section="documents" gridCols={gridCols} setGridCols={setGridCols} />
+                                <GridControl section="documents" gridCols={gridCols} onGridChange={onGridChange} />
                                 <button onClick={onAdd} className="bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-pink-700 shadow-sm">+ Tambah Dokumen</button>
                             </div>
                         )}
