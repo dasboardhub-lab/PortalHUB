@@ -185,30 +185,6 @@
             Check: () => <svg className="w-4 h-4 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
         };
 
-        const getGridClass = (cols) => {
-            if (cols === 2) return "grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mb-8";
-            if (cols === 3) return "grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4 mb-8";
-            if (cols === 4) return "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 mb-8";
-            if (cols === 5) return "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4 mb-8";
-            if (cols === 6) return "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 md:gap-4 mb-8";
-            if (cols === 7) return "grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 md:gap-4 mb-8";
-            if (cols === 8) return "grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3 md:gap-4 mb-8";
-            return "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-4 mb-8";
-        };
-
-        function GridControl({ section, gridCols, onGridChange }) {
-            return (
-                <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-300">
-                    <span>Kolom Desktop:</span>
-                    {[2, 3, 4, 5, 6, 7, 8].map(num => (
-                        <button key={num} onClick={() => onGridChange(section, num)} className={`w-6 h-6 rounded flex items-center justify-center ${gridCols[section] === num ? 'bg-pink-600 text-white' : 'bg-white dark:bg-gray-700 hover:bg-gray-200'}`}>
-                            {num}
-                        </button>
-                    ))}
-                </div>
-            );
-        }
-
         const handleLinkClick = (e, url) => {
             if (url === '#' || url === '' || !url) {
                 e.preventDefault();
@@ -237,7 +213,6 @@
             const [showAccountModal, setShowAccountModal] = useState(false);
             const [editAccountData, setEditAccountData] = useState(null);
             const [editAccountIndex, setEditAccountIndex] = useState(null);
-            const [gridCols, setGridCols] = useState({ apps: 4, reports: 4, monitoring: 4, documents: 2 });
 
             const [firebaseDb, setFirebaseDb] = useState(null);
             const [user, setUser] = useState(null);
@@ -294,9 +269,8 @@
                         if(data.dataMonitoring) setDataMonitoring(data.dataMonitoring);
                         if(data.dataDocuments) setDataDocuments(data.dataDocuments);
                         if(data.dataAccounts) setDataAccounts(data.dataAccounts);
-                        if(data.gridCols) setGridCols(data.gridCols);
                     } else {
-                        setDoc(docRef, { dataApps: INITIAL_APPS, dataReports: INITIAL_REPORTS, dataMonitoring: INITIAL_MONITORING, dataDocuments: INITIAL_DOCUMENTS, dataAccounts: ACCOUNT_DATA, gridCols: { apps: 4, reports: 4, monitoring: 4, documents: 2 } });
+                        setDoc(docRef, { dataApps: INITIAL_APPS, dataReports: INITIAL_REPORTS, dataMonitoring: INITIAL_MONITORING, dataDocuments: INITIAL_DOCUMENTS, dataAccounts: ACCOUNT_DATA });
                     }
                 }, error => console.error("Snapshot error:", error));
 
@@ -366,12 +340,6 @@
                 setEditAccountIndex(null);
             };
 
-            const handleGridChange = (section, num) => {
-                const n = { ...gridCols, [section]: num };
-                setGridCols(n);
-                saveToCloud({gridCols: n});
-            };
-
             const openAddAccountModal = () => {
                 setEditAccountData(null);
                 setEditAccountIndex(null);
@@ -421,10 +389,10 @@
             const renderContent = () => {
                 switch(activeView) {
                     case 'home': return <HomeView setActiveView={handleMenuClick} dataApps={dataApps} dataReports={dataReports} dataMonitoring={dataMonitoring} dataDocuments={dataDocuments} />;
-                    case 'apps': return <AppsView data={dataApps} dataAccounts={dataAccounts} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('apps')} onDeleteAccount={handleDeleteAccount} onEditAccount={openEditAccountModal} onAddAccount={openAddAccountModal} gridCols={gridCols} onGridChange={handleGridChange} />;
-                    case 'reports': return <ReportsView data={dataReports} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('reports')} gridCols={gridCols} onGridChange={handleGridChange} />;
-                    case 'monitoring': return <MonitoringView data={dataMonitoring} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('monitoring')} gridCols={gridCols} onGridChange={handleGridChange} />;
-                    case 'documents': return <DocumentsView data={dataDocuments} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('documents')} gridCols={gridCols} onGridChange={handleGridChange} />;
+                    case 'apps': return <AppsView data={dataApps} dataAccounts={dataAccounts} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('apps')} onDeleteAccount={handleDeleteAccount} onEditAccount={openEditAccountModal} onAddAccount={openAddAccountModal} />;
+                    case 'reports': return <ReportsView data={dataReports} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('reports')} />;
+                    case 'monitoring': return <MonitoringView data={dataMonitoring} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('monitoring')} />;
+                    case 'documents': return <DocumentsView data={dataDocuments} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('documents')} />;
                     case 'wbs': return <WhistleblowingView />;
                     default: return <HomeView setActiveView={handleMenuClick} dataApps={dataApps} dataReports={dataReports} dataMonitoring={dataMonitoring} dataDocuments={dataDocuments} />;
                 }
@@ -852,7 +820,7 @@
             );
         }
 
-        function AppsView({ data, dataAccounts, isEditMode, onDelete, onEdit, onAdd, onDeleteAccount, onEditAccount, onAddAccount, gridCols, onGridChange }) {
+        function AppsView({ data, dataAccounts, isEditMode, onDelete, onEdit, onAdd, onDeleteAccount, onEditAccount, onAddAccount }) {
             const [searchQuery, setSearchQuery] = useState("");
             const [filterAppType, setFilterAppType] = useState('All');
             const [filterHub, setFilterHub] = useState('All');
@@ -888,7 +856,6 @@
                             <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Akses aplikasi dan tool pendukung.</p>
                         </div>
                          <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-                            {isEditMode && <GridControl section="apps" gridCols={gridCols} onGridChange={onGridChange} />}
                             <div className="relative w-full md:w-auto">
                                 <input type="text" placeholder="Cari aplikasi..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full md:w-72 pl-8 pr-4 py-2 border rounded-lg text-sm bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-pink-500" />
                                 <div className="absolute left-2.5 top-2.5 text-gray-400"><Icons.Grid className="w-4 h-4" /></div>
@@ -896,7 +863,7 @@
                         </div>
                     </div>
 
-                    <div className={getGridClass(gridCols.apps)}>
+                    <div className="grid gap-3 md:gap-4 mb-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
                         {filteredApps.map((app, idx) => (
                             <ItemCard key={idx} item={app} isEditMode={isEditMode} onDelete={() => onDelete('apps', idx)} onEdit={() => onEdit('apps', idx, app)} />
                         ))}
@@ -1000,7 +967,7 @@
             );
         }
 
-        function ReportsView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, onGridChange }) {
+        function ReportsView({ data, isEditMode, onDelete, onEdit, onAdd }) {
             const categories = ['Daily', 'Inbound', 'Outbound', 'Handover'];
             
             return (
@@ -1012,7 +979,6 @@
                         </div>
                         {isEditMode && (
                             <div className="flex items-center gap-3">
-                                <GridControl section="reports" gridCols={gridCols} onGridChange={onGridChange} />
                                 <button onClick={onAdd} className="bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-pink-700 shadow-sm">+ Tambah Baru</button>
                             </div>
                         )}
@@ -1025,7 +991,7 @@
                         return (
                             <div key={cat}>
                                 <h3 className="text-base md:text-lg font-bold text-gray-700 dark:text-gray-200 mb-4 flex items-center"><span className="w-1.5 h-6 bg-blue-600 rounded-full mr-3"></span>Kategori: {cat}</h3>
-                                <div className={getGridClass(gridCols.reports)}>
+                                <div className="grid gap-3 md:gap-4 mb-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
                                     {items.map((item, idx) => <ItemCard key={idx} item={item} isEditMode={isEditMode} onDelete={() => {
                                         const actualIndex = data.findIndex(d => d === item);
                                         onDelete('reports', actualIndex);
@@ -1042,7 +1008,7 @@
             );
         }
 
-        function MonitoringView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, onGridChange }) {
+        function MonitoringView({ data, isEditMode, onDelete, onEdit, onAdd }) {
             return (
                 <div className="fade-in">
                     <div className="mb-4 md:mb-6 border-b border-gray-200 dark:border-dark-border pb-4 flex justify-between items-center flex-wrap gap-4">
@@ -1050,10 +1016,9 @@
                             <h2 className="text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-100">Monitoring</h2>
                             <p className="text-sm md:text-base text-gray-500 dark:text-gray-400">Pantau pergerakan paket dan kinerja HUB.</p>
                         </div>
-                        {isEditMode && <GridControl section="monitoring" gridCols={gridCols} onGridChange={onGridChange} />}
                     </div>
 
-                    <div className={getGridClass(gridCols.monitoring)}>
+                    <div className="grid gap-3 md:gap-4 mb-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
                         {data.map((item, idx) => (
                             <ItemCard key={idx} item={item} isEditMode={isEditMode} onDelete={() => onDelete('monitoring', idx)} onEdit={() => onEdit('monitoring', idx, item)} />
                         ))}
@@ -1063,7 +1028,7 @@
             );
         }
 
-        function DocumentsView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, onGridChange }) {
+        function DocumentsView({ data, isEditMode, onDelete, onEdit, onAdd }) {
             const categories = ['Program & Kompetisi', 'Project & Improvement', 'SOP & Panduan Operasional'];
 
             return (
@@ -1075,7 +1040,6 @@
                         </div>
                         {isEditMode && (
                             <div className="flex items-center gap-3">
-                                <GridControl section="documents" gridCols={gridCols} onGridChange={onGridChange} />
                                 <button onClick={onAdd} className="bg-pink-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-pink-700 shadow-sm">+ Tambah Dokumen</button>
                             </div>
                         )}
@@ -1091,7 +1055,7 @@
                                     <span className="w-1.5 h-6 bg-gray-500 rounded-full mr-3"></span>
                                     {cat}
                                 </h3>
-                                <div className={getGridClass(gridCols.documents)}>
+                                <div className="grid gap-3 md:gap-4 mb-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
                                     {items.map((item, idx) => (
                                         <ItemCard key={idx} item={item} isEditMode={isEditMode} onDelete={() => {
                                             const actualIndex = data.findIndex(d => d === item);
