@@ -61,6 +61,22 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        // ==========================================
+        // 🔧 KONFIGURASI DATABASE (UNTUK HOSTING SENDIRI/VERCEL)
+        // Ganti nilai 'null' di bawah ini dengan konfigurasi Firebase Anda.
+        // Contoh format yang benar:
+        // const CUSTOM_FIREBASE_CONFIG = { apiKey: "AIzaSy...", authDomain: "project-anda.firebaseapp.com", projectId: "project-anda" };
+        // ==========================================
+        const CUSTOM_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCxv5DCtwf1QGpLZVGVslBtaMl6jnz-vu8",
+            authDomain: "portal-hub-435b3.firebaseapp.com",
+            projectId: "portal-hub-435b3",
+            storageBucket: "portal-hub-435b3.firebasestorage.app",
+            messagingSenderId: "1037809850299",
+            appId: "1:1037809850299:web:f0f3074a37b7b87595569e"
+        }; 
+
+
         const APP_TITLE = "PORTAL HUB"; 
         const APP_SUBTITLE = "KAL-SULAM"; 
         const USER_NAME = "Tim Operasional";
@@ -261,16 +277,24 @@
             useEffect(() => {
                 let unsubscribeAuth = () => {};
                 const setupFirebase = async () => {
-                    if (typeof __firebase_config === 'undefined' || !__firebase_config || __firebase_config === '{}') {
+                    let configObj = null;
+                    if (typeof __firebase_config !== 'undefined' && __firebase_config && __firebase_config !== '{}') {
+                        configObj = JSON.parse(__firebase_config);
+                    } else if (CUSTOM_FIREBASE_CONFIG) {
+                        configObj = CUSTOM_FIREBASE_CONFIG;
+                    }
+
+                    if (!configObj) {
                         setIsOffline(true);
                         return;
                     }
+
                     try {
-                        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'portal-hub-app';
                         setAppId(currentAppId);
 
                         if(window.FB) {
-                            const app = window.FB.initializeApp(JSON.parse(__firebase_config));
+                            const app = window.FB.initializeApp(configObj);
                             const auth = window.FB.getAuth(app);
                             setFirebaseDb(window.FB.getFirestore(app));
 
