@@ -9,19 +9,16 @@
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
 
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Memperbarui versi CDN ke stabil untuk menghindari bug Babel Standalone terbaru -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        window.FB = { initializeApp, getAuth, onAuthStateChanged, signInAnonymously, signInWithCustomToken, getFirestore, doc, setDoc, onSnapshot };
-        window.dispatchEvent(new Event('firebase-loaded'));
-    </script>
+    <!-- Memuat Firebase melalui script tag biasa (non-module) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <script>
         tailwind.config = {
@@ -58,7 +55,8 @@
 <body class="bg-gray-50 text-gray-800 dark:bg-dark-bg dark:text-dark-text transition-colors duration-300 selection:bg-pink-500 selection:text-white">
     <div id="root"></div>
 
-    <script type="text/babel">
+    <!-- Menambahkan data-presets eksplisit agar Babel tidak menganggap file sebagai ES Module secara tidak sengaja -->
+    <script type="text/babel" data-presets="react,env">
         const { useState, useEffect } = React;
 
         // ==========================================
@@ -279,7 +277,7 @@
                 const setupFirebase = async () => {
                     let configObj = null;
                     if (typeof __firebase_config !== 'undefined' && __firebase_config && __firebase_config !== '{}') {
-                        configObj = JSON.parse(__firebase_config);
+                        configObj = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
                     } else if (CUSTOM_FIREBASE_CONFIG) {
                         configObj = CUSTOM_FIREBASE_CONFIG;
                     }
@@ -293,18 +291,19 @@
                         const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'portal-hub-app';
                         setAppId(currentAppId);
 
-                        if(window.FB) {
-                            const app = window.FB.initializeApp(configObj);
-                            const auth = window.FB.getAuth(app);
-                            setFirebaseDb(window.FB.getFirestore(app));
+                        // Gunakan object firebase yang diekspos oleh script compat
+                        if(window.firebase) {
+                            const app = window.firebase.initializeApp(configObj);
+                            const auth = app.auth();
+                            setFirebaseDb(app.firestore());
 
                             if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                                await window.FB.signInWithCustomToken(auth, __initial_auth_token);
+                                await auth.signInWithCustomToken(__initial_auth_token);
                             } else {
-                                await window.FB.signInAnonymously(auth);
+                                await auth.signInAnonymously();
                             }
 
-                            unsubscribeAuth = window.FB.onAuthStateChanged(auth, setUser);
+                            unsubscribeAuth = auth.onAuthStateChanged(setUser);
                         }
                     } catch(e) { 
                         console.error("Firebase init error", e); 
@@ -312,22 +311,20 @@
                     }
                 };
 
-                if (window.FB) setupFirebase();
-                else window.addEventListener('firebase-loaded', setupFirebase);
+                // Tunggu sebentar untuk memastikan script firebase termuat
+                setTimeout(setupFirebase, 500);
                 
                 return () => {
                     unsubscribeAuth();
-                    window.removeEventListener('firebase-loaded', setupFirebase);
                 };
             }, []);
 
             useEffect(() => {
-                if (!user || !firebaseDb || !window.FB) return;
-                const { doc, onSnapshot, setDoc } = window.FB;
-                const docRef = doc(firebaseDb, 'artifacts', appId, 'public', 'data', 'dashboard', 'settings');
+                if (!user || !firebaseDb) return;
+                const docRef = firebaseDb.collection('artifacts').doc(appId).collection('public').doc('data').collection('dashboard').doc('settings');
                 
-                const unsubscribe = onSnapshot(docRef, (docSnap) => {
-                    if (docSnap.exists()) {
+                const unsubscribe = docRef.onSnapshot((docSnap) => {
+                    if (docSnap.exists) {
                         const data = docSnap.data();
                         if(data.dataApps) setDataApps(data.dataApps);
                         if(data.dataReports) setDataReports(data.dataReports);
@@ -336,7 +333,7 @@
                         if(data.dataAccounts) setDataAccounts(data.dataAccounts);
                         if(data.gridCols) setGridCols(data.gridCols);
                     } else {
-                        setDoc(docRef, { dataApps: INITIAL_APPS, dataReports: INITIAL_REPORTS, dataMonitoring: INITIAL_MONITORING, dataDocuments: INITIAL_DOCUMENTS, dataAccounts: ACCOUNT_DATA, gridCols: { apps: 4, reports: 4, monitoring: 4, documents: 2 } });
+                        docRef.set({ dataApps: INITIAL_APPS, dataReports: INITIAL_REPORTS, dataMonitoring: INITIAL_MONITORING, dataDocuments: INITIAL_DOCUMENTS, dataAccounts: ACCOUNT_DATA, gridCols: { apps: 4, reports: 4, monitoring: 4, documents: 2 } });
                     }
                 }, error => console.error("Snapshot error:", error));
 
@@ -344,10 +341,9 @@
             }, [user, firebaseDb, appId]);
 
             const saveToCloud = async (updates) => {
-                if (isOffline || !user || !firebaseDb || !window.FB) return;
-                const { doc, setDoc } = window.FB;
-                const docRef = doc(firebaseDb, 'artifacts', appId, 'public', 'data', 'dashboard', 'settings');
-                try { await setDoc(docRef, updates, { merge: true }); } 
+                if (isOffline || !user || !firebaseDb) return;
+                const docRef = firebaseDb.collection('artifacts').doc(appId).collection('public').doc('data').collection('dashboard').doc('settings');
+                try { await docRef.set(updates, { merge: true }); } 
                 catch (e) { console.error("Error saving:", e); }
             };
 
