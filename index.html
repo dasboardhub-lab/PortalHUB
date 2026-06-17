@@ -55,6 +55,13 @@
         .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
         .sticky-header th { position: sticky; top: 0; z-index: 10; }
         .app-container { max-width: 1600px; width: 100%; height: 95vh; max-height: 1000px; }
+        
+        @media (max-width: 768px) {
+            #root { padding: 0; }
+            .app-container { height: 100dvh; max-height: none; border-radius: 0; border: none; }
+        }
+        
+        img { max-width: 100%; height: auto; }
     </style>
 </head>
 <body class="bg-[#dcdfe5] text-gray-800 dark:bg-dark-bg dark:text-dark-text transition-colors duration-300 selection:bg-blue-500 selection:text-white">
