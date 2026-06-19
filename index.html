@@ -387,11 +387,17 @@
                             )}
                         </div>
                         <div className="relative cursor-pointer transition-transform duration-300 hover:scale-110 active:scale-125">
-                            <img src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile" className="w-20 h-20 rounded-full mb-3 shadow-md object-cover" />
+                            {loggedInUser && !isAdminLoggedIn ? (
+                                <div className="w-20 h-20 rounded-full mb-3 shadow-md bg-blue-100 text-blue-600 flex items-center justify-center text-3xl font-bold border-4 border-white mx-auto">
+                                    {loggedInUser.user.substring(0, 2).toUpperCase()}
+                                </div>
+                            ) : (
+                                <img src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile" className="w-20 h-20 rounded-full mb-3 shadow-md object-cover mx-auto" />
+                            )}
                             <div className="absolute bottom-4 right-0 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
                         </div>
-                        <h3 className="font-extrabold text-gray-900">{CONTACT.name}</h3>
-                        <p className="text-xs text-gray-500 font-medium mb-4">@{CONTACT.name.toLowerCase()}</p>
+                        <h3 className="font-extrabold text-gray-900">{loggedInUser && !isAdminLoggedIn ? loggedInUser.user : CONTACT.name}</h3>
+                        <p className="text-xs text-gray-500 font-medium mb-4">@{loggedInUser && !isAdminLoggedIn ? loggedInUser.user.toLowerCase() : CONTACT.name.toLowerCase()}</p>
 
                         {isAdminLoggedIn && (
                             <button 
@@ -1319,16 +1325,25 @@
 
                         <div className="flex items-center gap-3">
                             {loggedInUser ? (
-                                <div className="flex items-center gap-3">
+                                <>
                                     <button onClick={() => { setIsAdminLoggedIn(false); setIsEditMode(false); setLoggedInUser(null); }} className="text-gray-400 hover:text-red-500 flex items-center justify-center p-1" title="Logout">
                                         <Icons.Logout />
                                     </button>
-                                    <img src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile" className="w-8 h-8 rounded-full shadow-sm object-cover border border-gray-200" />
-                                </div>
+                                    {!isAdminLoggedIn ? (
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shadow-sm border border-blue-200 shrink-0">
+                                            {loggedInUser.user.substring(0, 2).toUpperCase()}
+                                        </div>
+                                    ) : (
+                                        <img src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile" className="w-8 h-8 rounded-full shadow-sm object-cover border border-gray-200 shrink-0" />
+                                    )}
+                                </>
                             ) : (
-                                <button onClick={() => setShowLogin(true)} className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-colors shadow-sm" title="Login">
-                                    <Icons.Login /> Login
-                                </button>
+                                <>
+                                    <button onClick={() => setShowLogin(true)} className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-colors shadow-sm" title="Login">
+                                        <Icons.Login /> <span className="hidden sm:inline">Login</span>
+                                    </button>
+                                    <img src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile" className="w-8 h-8 rounded-full shadow-sm object-cover border border-gray-200 shrink-0" />
+                                </>
                             )}
                         </div>
                     </div>
