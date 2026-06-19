@@ -41,8 +41,7 @@
     </script>
 
     <style>
-        /* Perbaikan: Padding statis pada body, tidak ada max-width pada root agar melebar sepenuhnya mengisi layar dikurangi padding */
-        body { margin: 0; padding: 1.5rem; font-family: 'Plus Jakarta Sans', sans-serif; background-color: #e5e7eb; overflow: hidden; width: 100vw; height: 100vh; box-sizing: border-box; }
+        body { margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; background-color: #e5e7eb; overflow: hidden; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; padding: 3vh 3vw; box-sizing: border-box; }
         #root { width: 100%; height: 100%; display: flex; overflow: hidden; border-radius: 2rem; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); background-color: #ffffff; }
         .fade-in { animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -54,10 +53,9 @@
         .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
         .sticky-header th { position: sticky; top: 0; z-index: 10; }
         img { max-width: 100%; height: auto; }
-        
         @media (max-width: 768px) {
             body { padding: 0; }
-            #root { border-radius: 0; }
+            #root { border-radius: 0; height: 100dvh; max-width: 100%; }
         }
     </style>
 </head>
@@ -78,6 +76,7 @@
 
         const APP_TITLE = "PORTAL HUB"; 
         const APP_SUBTITLE = "KAL-SULAM"; 
+        const USER_NAME = "Tim Operasional";
         
         const CONTACT = {
             name: "Gustiadi",
@@ -113,7 +112,42 @@
             { user: "04000018", pass: "ig6yGMA@", app: "ELC", hub: "GTO" },
             { user: "76000002", pass: "sAbREc6p", app: "Rider", hub: "BPP", rute: "GNBH0-BAMP0" },
             { user: "76000006", pass: "J4stDWre", app: "Rider", hub: "MKS", rute: "TRAD0-SLEK0" },
-            { user: "76000015", pass: "d4UTrEtr", app: "Rider", hub: "KDI", rute: "BGOY0" }
+            { user: "76000015", pass: "d4UTrEtr", app: "Rider", hub: "KDI", rute: "BGOY0" },
+            { user: "76000017", pass: "SEPho2e5", app: "Rider", hub: "BJM", rute: "PMRL0" },
+            { user: "76000018", pass: "frU9Ow8c", app: "Rider", hub: "BPP", rute: "BTBR0" },
+            { user: "76000019", pass: "tOswU1wO", app: "Rider", hub: "BPP", rute: "LOBK0-SPLR0" },
+            { user: "76000020", pass: "7HexBpRa", app: "Rider", hub: "PLK", rute: "BTGL0-PHND0-PNRG0" },
+            { user: "76000022", pass: "3ED2fRoq", app: "Rider", hub: "GTO", rute: "TMLB0" },
+            { user: "76000025", pass: "Dcq3pUdu", app: "Rider", hub: "MKS", rute: "TMLP0-TMRG0" },
+            { user: "76000028", pass: "Xe2wUdat", app: "Rider", hub: "BJM", rute: "MABU0" },
+            { user: "76000031", pass: "gLS8aV5F", app: "Rider", hub: "MKS", rute: "MTR" },
+            { user: "76000032", pass: "WRaC8V8R", app: "Rider", hub: "MKS", rute: "PLK" },
+            { user: "76000033", pass: "raF7Eb4u", app: "Rider", hub: "MKS", rute: "TAR" },
+            { user: "76000034", pass: "pe4rewrO", app: "Rider", hub: "BJM", rute: "TF3" },
+            { user: "76000035", pass: "WrafEn9p", app: "Rider", hub: "SMR", rute: "LOBK0-SPLR0-BTBR0" },
+            { user: "76000036", pass: "M9Br!thi", app: "Rider", hub: "MKS", rute: "TRAD0" },
+            { user: "76000037", pass: "P2u2o!hu", app: "Rider", hub: "MKS", rute: "SLEK0" },
+            { user: "76000040", pass: "feT16cha", app: "Rider", hub: "MND", rute: "WWNS0" },
+            { user: "76000054", pass: "WA9em2tE", app: "Rider", hub: "BPP", rute: "TNR" },
+            { user: "76000055", pass: "freTRUm5", app: "Rider", hub: "BPP", rute: "SMR" },
+            { user: "76000056", pass: "wroHa8r4", app: "Rider", hub: "SMR", rute: "BPP" },
+            { user: "76000057", pass: "9ar8sWeB", app: "Rider", hub: "MKS", rute: "PRE" },
+            { user: "76000060", pass: "ZufAsw8V", app: "Rider", hub: "MKS", rute: "DAYA0" },
+            { user: "76000066", pass: "fEjo3aJu", app: "Rider", hub: "BPP", rute: "GNSU0" },
+            { user: "76000073", pass: "r5!eMaGa", app: "Rider", hub: "TAR", rute: "KRBL0" },
+            { user: "76000074", pass: "9RaphAde", app: "Rider", hub: "BPP", rute: "BJM" },
+            { user: "76000075", pass: "FoMOf6uT", app: "Rider", hub: "PLK", rute: "BJM" },
+            { user: "76000076", pass: "thEs9i8r", app: "Rider", hub: "BJM", rute: "BPP" },
+            { user: "76000077", pass: "haswn7A9", app: "Rider", hub: "BJM", rute: "PLK" },
+            { user: "76000078", pass: "Ta7ujeGO", app: "Rider", hub: "MKS", rute: "SBY" },
+            { user: "76000079", pass: "8oKeZOFr", app: "Rider", hub: "PLK", rute: "SMR" },
+            { user: "76000080", pass: "NeweDR3g", app: "Rider", hub: "BPP", rute: "PLK" },
+            { user: "76000081", pass: "z6saxAZe", app: "Rider", hub: "PLK", rute: "BPP" },
+            { user: "76000082", pass: "3HeQEyA2", app: "Rider", hub: "KDI", rute: "HLM" },
+            { user: "76000083", pass: "rVo2b!hK", app: "Rider", hub: "TTE", rute: "SOAT0" },
+            { user: "76000084", pass: "Z9wUnOgo", app: "Rider", hub: "MKS", rute: "DAYA0-ROPG0-PRPO0" },
+            { user: "76000085", pass: "$RaB4vQx", app: "Rider", hub: "AMB", rute: "BTMR0" },
+            { user: "76000086", pass: "ChA!A8ra", app: "Rider", hub: "PAL", rute: "LOSL0" }
         ];
 
         const INITIAL_REPORTS = [
@@ -122,8 +156,17 @@
             { name: "produktifity", icon: "📊", color: "from-green-500 to-green-600", category: "Daily", links: [{ label: "Master", url: "https://docs.google.com/spreadsheets/d/113G49WLk45VmxZKrhxbUy8TmNfT0xCa_aCYx9t2ETKE/edit?gid=633333355#gid=633333355" }, { label: "Dasboard", url: "https://produktifity.vercel.app/" }] },
             { name: "3PL", url: "https://dasboardhub-lab.github.io/3PL_Report/", icon: "🚚", color: "from-purple-500 to-purple-600", category: "Daily" },
             { name: "Rekap Data Inbound", url: "https://inboundhubkalsulamp.vercel.app/", icon: "📦", color: "from-green-500 to-green-600", category: "Inbound" , desc: "Rekapan Data Inbound yan suda di terima di Destinasi" },
+            { name: "HUB MKS", url: "https://docs.google.com/spreadsheets/d/1LL8ldROACPK6jNZ-qFKcrN9PYqXk6DaYTMqpKcJFHlQ/edit?usp=sharing", icon: "📦", color: "from-green-500 to-green-600", category: "Inbound" },
+            { name: "HUB BPP", url: "https://docs.google.com/spreadsheets/d/1cpxPYGDeL6xMQ-tHap57zSbrX5ECw48capJuPVA7yFk/edit?usp=sharing", icon: "📦", color: "from-green-500 to-green-600", category: "Inbound" },
+            { name: "HUB BJM & PLK", url: "https://docs.google.com/spreadsheets/d/15ruxdhI-xFyWQFaH0DUayF8KFRQzHJcKOn-mVhE9V7U/edit?usp=sharing", icon: "📦", color: "from-green-500 to-green-600", category: "Inbound" },
+            { name: "HUB PTK", url: "https://docs.google.com/spreadsheets/d/18Z_WdfqzFEBO_FjxDzVn5G1npwbUgWEPvDu5Xia3xrw/edit?usp=sharing", icon: "📦", color: "from-green-500 to-green-600", category: "Inbound" },
             { name: "HUB Dummy", icon: "📦", color: "from-green-500 to-green-600", category: "Inbound", links: [{ label: "2026", url: "https://docs.google.com/spreadsheets/d/1rUsUvx_83QOZYdP5lJG48lOJp7kxZ5tyexqoYbulVr4/edit?usp=sharing" }, { label: "2025", url: "https://docs.google.com/spreadsheets/d/1yIlj2DLEcQshL26rlxdv763OFrSf9O7Ud4ym2Z7Nl2I/edit?usp=sharing" }] },
             { name: "HUB MKS", icon: "🚛", color: "from-orange-500 to-orange-600", category: "Outbound", links: [{ label: "Data Pre-Alert", url: "https://docs.google.com/spreadsheets/d/1GWTc2XadD2gauM7u4AwcMwmMJcWkeG-cbXj5njXerEY/edit?usp=sharing" }, { label: "Report Pre-Alert", url: "https://lookerstudio.google.com/reporting/52e02502-95fd-49f9-afa9-24398d16be08" }] },
+            { name: "HUB BPP", icon: "🚛", color: "from-orange-500 to-orange-600", category: "Outbound", links: [{ label: "Data Pre-Alert", url: "https://docs.google.com/spreadsheets/d/1eNNv8DJRB-KUeE5CeNTI7ZCp3RoqnTT-sc-tAXjg1Is/edit?usp=sharing" }, { label: "Report Pre-Alert", url: "https://lookerstudio.google.com/reporting/574ffea8-de8b-465e-a792-22ef44c27a27" }] },
+            { name: "HUB BJM", icon: "🚛", color: "from-orange-500 to-orange-600", category: "Outbound", links: [{ label: "Data Pre-Alert", url: "https://docs.google.com/spreadsheets/d/1mfS5xCi3Mg8ikyu21XWfGXuW69gfKc2QsXf82HsCcbQ/edit?usp=sharing" }, { label: "Report Pre-Alert", url: "https://lookerstudio.google.com/reporting/574ffea8-de8b-465e-a792-22ef44c27a27" }] },
+            { name: "HUB PLK", icon: "🚛", color: "from-orange-500 to-orange-600", category: "Outbound", links: [{ label: "Data Pre-Alert", url: "https://docs.google.com/spreadsheets/d/1lObYQqdALEZz5uOXLuHqKjBmoQtJ0SWC9jAL3BbhwZ8/edit?usp=sharing" }, { label: "Report Pre-Alert", url: "https://lookerstudio.google.com/reporting/574ffea8-de8b-465e-a792-22ef44c27a27" }] },
+            { name: "HUB MND", icon: "🚛", color: "from-orange-500 to-orange-600", category: "Outbound", links: [{ label: "Data Pre-Alert", url: "https://docs.google.com/spreadsheets/d/1K_0QGpbZ_aGsugVZ2gKpA4sk4qpvjjmM_StQvWxDaVA/edit?usp=sharing" }, { label: "Report Pre-Alert", url: "https://lookerstudio.google.com/reporting/834517fe-0128-4d9c-bb38-9ad10f8e60ae" }] },
+            { name: "HUB Dummy", icon: "🚛", color: "from-orange-500 to-orange-600", category: "Outbound", links: [{ label: "Data Pre-Alert", url: "https://docs.google.com/spreadsheets/d/17rOWUx_gN9Efdb3V-OrwdwZzEd3BSMbPUTAmMzsinHA/edit?usp=sharing" }, { label: "Report Pre-Alert", url: "https://lookerstudio.google.com/reporting/e5fcfe21-2509-49a8-9719-b3a13284047b" }] },
             { name: "HD MKS", icon: "🤝", color: "from-cyan-500 to-cyan-600", category: "Handover", links: [{ label: "Upload Foto", url: "https://www.appsheet.com/newshortcut/c59090e2-96b5-48eb-b08e-cb5a1b5e2d33" }, { label: "2024-2025", url: "https://docs.google.com/spreadsheets/d/1gXEBZZJNtQmbKoOUpW3cYEIlhJZO6djSDKFELeJGMSc/edit?usp=sharing" }, { label: "2026", url: "https://docs.google.com/spreadsheets/d/16z7Db1TIKIkTGl3qTk6CQk0pN9ptQJgX8ozx2uWDEFQ/edit?usp=sharing" }] }
         ];
 
@@ -131,13 +174,22 @@
             { name: "Parcel Stuck HUB", url: "https://parcelstuck.vercel.app/", icon: "🛑", color: "from-red-500 to-red-600", desc: "Paket freeze tanpa progress perpindahan opcode." },
             { name: "Kelengkapan Opcode", icon: "🔎", color: "from-blue-500 to-blue-600", desc: "Dashboard validasi kelengkapan scan opcode.", links: [{ label: "Resource", url: "https://triadibersama-my.sharepoint.com/personal/finance_billing_anteraja_id/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Ffinance%5Fbilling%5Fanteraja%5Fid%2FDocuments%2FProjects%2FReport%5FOperation%2FReport%5FHub%5FOpcode%5FAvailability%2FDaily&sortField=Modified&isAscending=false&viewid=f5431ae5%2D9e35%2D4054%2D882e%2Dcbe5ce0863a7&ct=1644888149294%2C1737636264168&or=OWA%2DNT%2CTeams%2DHL&clickparams=eyJBcHBOYW1lIjoiVGVhbXMtRGVza3RvcCIsIkFwcFZlcnNpb24iOiI0OS8yNDEyMDEwMDIxNyIsIkhhc0ZlZGVyYXRlZFVzZXIiOmZhbHNlfQ" }, { label: "Rekapan", url: "https://visibilityopcodehub.vercel.app/" }] },
             { name: "Parcel Inprogress (2026)", icon: "⏱️", color: "from-cyan-500 to-cyan-600", desc: "Monitoring status parcel inprogress bulanan.", links: [{ label: "Master Data", url: "https://docs.google.com/spreadsheets/d/1ZDZ0eTFsqtCjE93Xj8pJjYO0S2g0r5_320QbdCN94J8/edit?usp=sharing" }, { label: "Dasboard", url: "https://parcelinprogress.vercel.app/" }] },
-            { name: "PICAPA", url: "https://gemini.google.com/share/5ad30949c3c1", icon: "💡", color: "from-purple-500 to-purple-600", desc: "Form pencatatan case operasional dan hal-hal yang perlu di-improve." }
+            { name: "PICAPA", url: "https://gemini.google.com/share/5ad30949c3c1", icon: "💡", color: "from-purple-500 to-purple-600", desc: "Form pencatatan case operasional dan hal-hal yang perlu di-improve." },
+            { name: "Return Mitra Pengusaha", url: "https://tracker-mitra-pengusaha.vercel.app/", icon: "↩️", color: "from-red-500 to-red-600", desc: "Monitoring Parcel Returan Mitra pengusaha yang di kirim ke HUB MKS" },
+            { name: "Monitoring XRT", url: "https://gemini.google.com/share/92f19caf51c9", icon: "🚨", color: "from-red-500 to-red-600", desc: "Monitoring Parcel XRT di SS Under HUB MKS" }
         ];
 
         const INITIAL_DOCUMENTS = [
             { category: "Program & Kompetisi", name: "Materi Sosialisasi Games HUB", url: "https://docs.google.com/presentation/d/1PxLvaNUbBJT6Q1km6iNYGgzgAjVKUSx5/edit?usp=sharing&ouid=103951504254822400572&rtpof=true&sd=true", icon: "🏆", color: "from-yellow-500 to-yellow-600", desc: "Slide presentasi aturan main, target, dan skema insentif Games HUB Desember 2025." },
+            { category: "Project & Improvement", name: "Review Trip 2 Rute HUB BPP - SMR", url: "https://gemini.google.com/share/f30e456ab696", icon: "🗺️", color: "from-green-600 to-green-700", desc: "[Resolved] Evaluasi trial selama satu bulan (13 Nov - 22 Des) menunjukkan hanya terdapat 5 hari pengiriman." },
             { category: "SOP & Panduan Operasional", name: "Instruksi Wajib: Exception Inbound", url: "https://drive.google.com/file/d/15GE1b_FtfaL2AXVdNNtUII7oWIG-H9IE/view?usp=sharing", icon: "📖", color: "from-red-500 to-red-600", desc: "Prosedur WAJIB jalankan opcode inbound. Gunakan cara exception jika terkendala sistem." },
-            { category: "SOP & Panduan Operasional", name: "Flow Proses Midmile (Visual)", url: "https://flowproseshub.netlify.app/", icon: "🔄", color: "from-purple-500 to-purple-600", desc: "Visualisasi alur standar operasional Midmile (Incoming to Outgoing)." }
+            { category: "SOP & Panduan Operasional", name: "Flow Proses Midmile (Visual)", url: "https://flowproseshub.netlify.app/", icon: "🔄", color: "from-purple-500 to-purple-600", desc: "Visualisasi alur standar operasional Midmile (Incoming to Outgoing)." },
+            { category: "SOP & Panduan Operasional", name: "Materi K3 & Tanggap Darurat", url: "https://docs.google.com/presentation/d/1i94kPuUxf7AlHNUBkN6-x9G0k5bwe8Nb/edit?usp=sharing&ouid=103951504254822400572&rtpof=true&sd=true", icon: "🦺", color: "from-red-500 to-red-600", desc: "Pedoman Keselamatan Kerja (K3) dan Prosedur Tanggap Darurat di area HUB." }
+        ];
+
+        const INITIAL_PHOTOS = [
+            { name: "Briefing Pagi Tim HUB", url: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", desc: "Koordinasi harian tim operasional sebelum memulai pemilahan paket." },
+            { name: "Proses Inbound Operasional", url: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", desc: "Penurunan paket dan validasi data secara langsung." }
         ];
 
         const Icons = {
@@ -150,19 +202,25 @@
             Folder: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>,
             Menu: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>,
             X: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>,
+            Moon: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>,
+            Sun: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>,
             Trash: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>,
             Plus: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>,
             Filter: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>,
+            Copy: () => <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>,
             Edit: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>,
-            Check: () => <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>,
+            Check: () => <svg className="w-4 h-4 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>,
+            Calendar: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>,
             MoreDots: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>,
             Phone: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>,
+            Video: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>,
             Info: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>,
             Logout: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>,
             Send: () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>,
             Login: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>,
             Lock: () => <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>,
-            Settings: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            Settings: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>,
+            Photograph: () => <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
         };
 
         function CustomModal({ config }) {
@@ -181,7 +239,7 @@
                             {config.type === 'confirm' && (
                                 <button onClick={config.onCancel} className="flex-1 py-3 px-4 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition-colors shadow-sm text-sm">Batal</button>
                             )}
-                            <button onClick={config.onConfirm} className={`flex-1 py-3 px-4 font-bold rounded-xl text-white transition-colors shadow-md text-sm ${config.type === 'confirm' ? 'bg-red-600 hover:bg-red-700' : 'bg-black hover:bg-gray-800'}`}>
+                            <button onClick={config.onConfirm} className={`flex-1 py-3 px-4 font-bold rounded-xl text-white transition-colors shadow-md text-sm ${config.type === 'confirm' ? 'bg-red-600 hover:bg-red-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
                                 {config.type === 'confirm' ? 'Lanjutkan' : 'Mengerti'}
                             </button>
                         </div>
@@ -189,7 +247,7 @@
                 </div>
             );
         }
-
+        
         function RightPanel({ firebaseDb, appId, isEditMode, setIsEditMode, isAdminLoggedIn, setIsAdminLoggedIn, adminAuth, saveToCloud, loggedInUser, setLoggedInUser, dataWebUsers, setDataWebUsers, showConfirm }) {
             const { useState, useEffect, useRef } = React;
             const [messages, setMessages] = useState([]);
@@ -535,10 +593,10 @@
 
         function GridControl({ section, gridCols, onGridChange }) {
             return (
-                <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600">
+                <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-300">
                     <span>Kolom Desktop:</span>
                     {[2, 3, 4, 5, 6, 7, 8].map(num => (
-                        <button key={num} onClick={() => onGridChange(section, num)} className={`w-6 h-6 rounded flex items-center justify-center ${gridCols[section] === num ? 'bg-pink-600 text-white' : 'bg-white hover:bg-gray-200'}`}>
+                        <button key={num} onClick={() => onGridChange(section, num)} className={`w-6 h-6 rounded flex items-center justify-center ${gridCols[section] === num ? 'bg-pink-600 text-white' : 'bg-white dark:bg-gray-700 hover:bg-gray-200'}`}>
                             {num}
                         </button>
                     ))}
@@ -558,88 +616,6 @@
             );
         }
 
-        function ItemCard({ item, isEditMode, onDelete, onEdit, showAlert }) {
-            const hasMultipleLinks = item.links && item.links.length > 0;
-            const isLinkEmpty = !item.url || item.url === '#';
-            
-            const handleCardClick = (e, url) => {
-                if (url === '#' || url === '' || !url) {
-                    e.preventDefault();
-                    if (showAlert) showAlert("Akses Tertunda", "Fitur ini sedang dalam proses pengerjaan.");
-                }
-            };
-
-            const cardClass = `group relative flex flex-col justify-between p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl transition-all duration-300 h-full ${isLinkEmpty ? 'border-orange-100 bg-orange-50/30' : 'hover:border-black/10 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1'}`;
-
-            return (
-                <div className="relative h-full">
-                    {isEditMode && (
-                        <div className="absolute -top-3 -right-3 z-20 flex gap-1">
-                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }} className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shadow-sm hover:bg-blue-600 hover:text-white transition-colors">
-                                <Icons.Edit />
-                            </button>
-                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }} className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center shadow-sm hover:bg-red-600 hover:text-white transition-colors">
-                                <Icons.Trash />
-                            </button>
-                        </div>
-                    )}
-                    
-                    {hasMultipleLinks ? (
-                        <div className={cardClass}>
-                            <div className="flex flex-col lg:flex-row items-start gap-3 sm:gap-4 mb-4">
-                                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-lg sm:text-xl bg-gradient-to-br ${item.color || 'from-gray-100 to-gray-200'} text-white shadow-inner flex-shrink-0`}>
-                                    {item.icon}
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-gray-900 text-xs sm:text-sm group-hover:text-black transition-colors line-clamp-2">{item.name}</h4>
-                                    <div className="flex items-center gap-1.5 mt-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
-                                        <span className="text-[9px] sm:text-[10px] font-semibold text-gray-500 uppercase tracking-wider">{item.category || 'Koleksi'}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="space-y-2 mt-auto pt-2 border-t border-gray-50 group-hover:border-transparent transition-colors">
-                                {item.links.map((link, idx) => {
-                                    const isEmpty = link.url === '#' || !link.url;
-                                    return (
-                                        <a key={idx} href={link.url} target={isEmpty ? '_self' : '_blank'} onClick={(e) => handleCardClick(e, link.url)} className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-[10px] sm:text-xs font-extrabold transition-all duration-300 group/link ${isEmpty ? 'bg-orange-50 text-orange-600' : 'bg-gray-50 text-gray-500 hover:bg-black hover:text-white hover:-translate-y-0.5 shadow-sm hover:shadow-md'}`}>
-                                            <span className="truncate mr-2">{link.label}</span>
-                                            {isEmpty ? <Icons.Warning /> : <svg className="w-3.5 h-3.5 transform group-hover/link:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>}
-                                        </a>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    ) : (
-                        <a href={item.url} target={isLinkEmpty ? '_self' : '_blank'} onClick={(e) => handleCardClick(e, item.url)} className={cardClass}>
-                            <div className="flex flex-col lg:flex-row items-start gap-3 sm:gap-4 mb-4">
-                                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-lg sm:text-xl bg-gradient-to-br ${item.color || 'from-gray-100 to-gray-200'} text-white shadow-inner flex-shrink-0`}>
-                                    {item.icon}
-                                </div>
-                                <div className="flex-1">
-                                    <h4 className="font-bold text-gray-900 text-xs sm:text-sm group-hover:text-black transition-colors line-clamp-2">{item.name}</h4>
-                                    <div className="flex items-center gap-1.5 mt-1">
-                                        <span className={`w-1.5 h-1.5 rounded-full ${isLinkEmpty ? 'bg-orange-400' : 'bg-green-400'}`}></span>
-                                        <span className="text-[9px] sm:text-[10px] font-semibold text-gray-500 uppercase tracking-wider">{isLinkEmpty ? 'On Hold' : (item.category || 'Tersedia')}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="mt-auto">
-                                <p className="text-[10px] sm:text-xs text-gray-500 mb-4 line-clamp-2">{item.desc || 'Klik untuk mengakses layanan ini'}</p>
-                                <div className="mt-auto flex justify-between items-center pt-2 border-t border-gray-50 group-hover:border-transparent transition-colors">
-                                    <span className="text-[10px] sm:text-[11px] font-extrabold bg-gray-100 text-gray-500 group-hover:bg-black group-hover:text-white px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-2 shadow-sm">
-                                        Buka Akses
-                                        <svg className="w-3.5 h-3.5 opacity-0 -ml-2 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                                    </span>
-                                </div>
-                            </div>
-                        </a>
-                    )}
-                </div>
-            );
-        }
-
         function HomeView({ setActiveView, dataApps, dataReports, dataMonitoring, dataDocuments }) {
             return (
                 <div className="space-y-6 fade-in">
@@ -655,30 +631,30 @@
 
                     <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2"><Icons.Home /> Motivasi Hari Ini</h3>
-                        <div className="p-6 bg-gray-50 rounded-xl border-l-4 border-blue-500 italic text-gray-600 text-sm md:text-base leading-relaxed">
+                        <div className="p-6 bg-gray-50 rounded-xl border-l-4 border-blue-500 italic text-gray-600">
                             "Kerja tim adalah kemampuan untuk bekerja sama menuju visi bersama. Kemampuan untuk mengarahkan pencapaian individu ke arah tujuan organisasi. Itulah bahan bakar yang memungkinkan orang biasa mencapai hasil yang tidak biasa." - Andrew Carnegie
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-black hover:shadow-md transition-all group" onClick={() => setActiveView('apps')}>
-                            <div className="w-10 h-10 bg-gray-100 text-gray-600 group-hover:bg-black group-hover:text-white rounded-xl flex items-center justify-center mb-3 transition-colors"><Icons.Grid /></div>
-                            <h4 className="font-bold text-gray-800 group-hover:text-black transition-colors">Aplikasi Utama</h4>
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-blue-300 transition-colors" onClick={() => setActiveView('apps')}>
+                            <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-3"><Icons.Grid /></div>
+                            <h4 className="font-bold text-gray-800">Aplikasi Utama</h4>
                             <p className="text-xs text-gray-500 mt-1">{dataApps.length} Aplikasi</p>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-black hover:shadow-md transition-all group" onClick={() => setActiveView('reports')}>
-                            <div className="w-10 h-10 bg-gray-100 text-gray-600 group-hover:bg-black group-hover:text-white rounded-xl flex items-center justify-center mb-3 transition-colors"><Icons.Report /></div>
-                            <h4 className="font-bold text-gray-800 group-hover:text-black transition-colors">Laporan</h4>
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-green-300 transition-colors" onClick={() => setActiveView('reports')}>
+                            <div className="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mb-3"><Icons.Report /></div>
+                            <h4 className="font-bold text-gray-800">Laporan</h4>
                             <p className="text-xs text-gray-500 mt-1">{dataReports.length} Laporan</p>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-black hover:shadow-md transition-all group" onClick={() => setActiveView('monitoring')}>
-                            <div className="w-10 h-10 bg-gray-100 text-gray-600 group-hover:bg-black group-hover:text-white rounded-xl flex items-center justify-center mb-3 transition-colors"><Icons.Monitor /></div>
-                            <h4 className="font-bold text-gray-800 group-hover:text-black transition-colors">Monitoring</h4>
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-orange-300 transition-colors" onClick={() => setActiveView('monitoring')}>
+                            <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-3"><Icons.Monitor /></div>
+                            <h4 className="font-bold text-gray-800">Monitoring</h4>
                             <p className="text-xs text-gray-500 mt-1">{dataMonitoring.length} Tools</p>
                         </div>
-                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-black hover:shadow-md transition-all group" onClick={() => setActiveView('documents')}>
-                            <div className="w-10 h-10 bg-gray-100 text-gray-600 group-hover:bg-black group-hover:text-white rounded-xl flex items-center justify-center mb-3 transition-colors"><Icons.Folder /></div>
-                            <h4 className="font-bold text-gray-800 group-hover:text-black transition-colors">Dokumen</h4>
+                        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm cursor-pointer hover:border-purple-300 transition-colors" onClick={() => setActiveView('documents')}>
+                            <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-3"><Icons.Folder /></div>
+                            <h4 className="font-bold text-gray-800">Dokumen</h4>
                             <p className="text-xs text-gray-500 mt-1">{dataDocuments.length} File</p>
                         </div>
                     </div>
@@ -712,7 +688,7 @@
                             <ItemCard key={index} item={item} isEditMode={isEditMode} onDelete={() => onDelete('apps', index)} onEdit={() => onEdit('apps', index, item)} showAlert={showAlert} />
                         ))}
                         {isEditMode && (
-                            <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-black hover:border-black hover:bg-gray-50 transition-all">
+                            <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all">
                                 <Icons.Plus />
                                 <span className="text-xs font-bold mt-2">Tambah Aplikasi</span>
                             </button>
@@ -727,11 +703,11 @@
                             </div>
                             <div className="flex items-center gap-2 w-full sm:w-auto">
                                 <div className="relative flex-1 sm:w-64">
-                                    <input type="text" placeholder="Cari akun, hub, rute..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black transition-shadow" />
+                                    <input type="text" placeholder="Cari akun, hub, rute..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-100" />
                                     <div className="absolute left-3 top-2.5 text-gray-400"><Icons.Filter /></div>
                                 </div>
                                 {isEditMode && (
-                                    <button onClick={onAddAccount} className="bg-black text-white px-4 py-2 rounded-xl text-sm font-bold shadow-sm hover:bg-gray-800 flex items-center gap-2 flex-shrink-0 transition-colors">
+                                    <button onClick={onAddAccount} className="bg-black text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-800 flex items-center gap-2 flex-shrink-0">
                                         <Icons.Plus /> Tambah Akun
                                     </button>
                                 )}
@@ -757,7 +733,7 @@
                                             <tr key={index} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                                                 <td className="p-4 font-bold text-gray-900">{acc.user}</td>
                                                 <td className="p-4 font-mono text-gray-600">{acc.pass}</td>
-                                                <td className="p-4 text-gray-600"><span className="bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md text-[10px] font-bold">{acc.app}</span></td>
+                                                <td className="p-4 text-gray-600"><span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md text-[10px] font-bold">{acc.app}</span></td>
                                                 <td className="p-4 text-gray-600">{acc.hub}</td>
                                                 <td className="p-4 text-gray-500 text-xs">{acc.rute || '-'}</td>
                                                 {isEditMode && (
@@ -803,7 +779,7 @@
                                     return <ItemCard key={actualIndex} item={item} isEditMode={isEditMode} onDelete={() => onDelete('reports', actualIndex)} onEdit={() => onEdit('reports', actualIndex, item)} showAlert={showAlert} />
                                 })}
                                 {isEditMode && (
-                                    <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-black hover:border-black hover:bg-gray-50 transition-all">
+                                    <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all">
                                         <Icons.Plus />
                                         <span className="text-xs font-bold mt-2">Tambah di {category}</span>
                                     </button>
@@ -813,7 +789,7 @@
                     ))}
                     {isEditMode && categories.length === 0 && (
                         <div className={getGridClass(gridCols.reports)}>
-                            <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-black hover:border-black hover:bg-gray-50 transition-all">
+                            <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all">
                                 <Icons.Plus />
                                 <span className="text-xs font-bold mt-2">Tambah Laporan</span>
                             </button>
@@ -839,7 +815,7 @@
                             <ItemCard key={index} item={item} isEditMode={isEditMode} onDelete={() => onDelete('monitoring', index)} onEdit={() => onEdit('monitoring', index, item)} showAlert={showAlert} />
                         ))}
                         {isEditMode && (
-                            <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-black hover:border-black hover:bg-gray-50 transition-all">
+                            <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all">
                                 <Icons.Plus />
                                 <span className="text-xs font-bold mt-2">Tambah Monitoring</span>
                             </button>
@@ -870,7 +846,7 @@
                                     return <ItemCard key={actualIndex} item={item} isEditMode={isEditMode} onDelete={() => onDelete('documents', actualIndex)} onEdit={() => onEdit('documents', actualIndex, item)} showAlert={showAlert} />
                                 })}
                                 {isEditMode && (
-                                    <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-black hover:border-black hover:bg-gray-50 transition-all">
+                                    <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all">
                                         <Icons.Plus />
                                         <span className="text-xs font-bold mt-2">Tambah Dokumen</span>
                                     </button>
@@ -880,12 +856,54 @@
                     ))}
                     {isEditMode && categories.length === 0 && (
                         <div className={getGridClass(gridCols.documents)}>
-                            <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-black hover:border-black hover:bg-gray-50 transition-all">
+                            <button onClick={onAdd} className="h-full min-h-[140px] border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50 transition-all">
                                 <Icons.Plus />
                                 <span className="text-xs font-bold mt-2">Tambah Dokumen</span>
                             </button>
                         </div>
                     )}
+                </div>
+            );
+        }
+
+        function GalleryView({ data, isEditMode, onDelete, onEdit, onAdd, gridCols, onGridChange }) {
+            return (
+                <div className="space-y-8 fade-in">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                        <div>
+                            <h2 className="text-2xl font-extrabold text-gray-900">Galeri Foto</h2>
+                            <p className="text-gray-500 text-sm mt-1">Dokumentasi kegiatan dan operasional tim.</p>
+                        </div>
+                        {isEditMode && <GridControl section="gallery" gridCols={gridCols} onGridChange={onGridChange} />}
+                    </div>
+
+                    <div className={getGridClass(gridCols.gallery || 4)}>
+                        {data.map((item, index) => (
+                            <div key={index} className="relative group rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 aspect-[4/3] shadow-sm hover:shadow-lg transition-all cursor-pointer" onClick={() => window.open(item.url, '_blank')}>
+                                {isEditMode && (
+                                    <div className="absolute top-2 right-2 z-20 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit('gallery', index, item); }} className="w-8 h-8 bg-white/90 text-blue-600 rounded-full flex items-center justify-center shadow-sm hover:bg-blue-600 hover:text-white transition-colors backdrop-blur-sm">
+                                            <Icons.Edit />
+                                        </button>
+                                        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete('gallery', index); }} className="w-8 h-8 bg-white/90 text-red-600 rounded-full flex items-center justify-center shadow-sm hover:bg-red-600 hover:text-white transition-colors backdrop-blur-sm">
+                                            <Icons.Trash />
+                                        </button>
+                                    </div>
+                                )}
+                                <img src={item.url} alt={item.name} className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.target.src = 'https://placehold.co/600x400/e2e8f0/64748b?text=Gambar+Gagal+Dimuat' }} />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                                    <h4 className="font-bold text-white text-sm line-clamp-1">{item.name}</h4>
+                                    {item.desc && <p className="text-white/80 text-[10px] mt-1 line-clamp-2">{item.desc}</p>}
+                                </div>
+                            </div>
+                        ))}
+                        {isEditMode && (
+                            <button onClick={onAdd} className="h-full w-full min-h-[140px] aspect-[4/3] border-2 border-dashed border-gray-300 rounded-2xl flex flex-col items-center justify-center text-gray-400 hover:text-black hover:border-black hover:bg-gray-50 transition-all">
+                                <Icons.Plus />
+                                <span className="text-xs font-bold mt-2">Tambah Foto</span>
+                            </button>
+                        )}
+                    </div>
                 </div>
             );
         }
@@ -911,31 +929,31 @@
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div className="bg-white border border-gray-100 p-8 rounded-3xl shadow-sm">
-                            <div className="w-12 h-12 bg-gray-100 text-gray-900 rounded-2xl flex items-center justify-center mb-6"><Icons.Info /></div>
+                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6"><Icons.Info /></div>
                             <h3 className="text-xl font-bold text-gray-900 mb-6">Syarat Informasi Pelaporan (5W+1H)</h3>
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-900 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
+                                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
                                     <div><strong className="text-gray-900 text-sm">What:</strong> <p className="text-xs text-gray-500 mt-1">Perbuatan apa yang terindikasi pelanggaran.</p></div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-900 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
+                                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
                                     <div><strong className="text-gray-900 text-sm">Who:</strong> <p className="text-xs text-gray-500 mt-1">Siapa pihak yang melakukan pelanggaran (Nama, Jabatan, Unit Kerja).</p></div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-900 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
+                                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
                                     <div><strong className="text-gray-900 text-sm">Where:</strong> <p className="text-xs text-gray-500 mt-1">Dimana perbuatan pelanggaran dilakukan (Unit Kerja, Staging, Hub, dll).</p></div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-900 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
+                                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
                                     <div><strong className="text-gray-900 text-sm">When:</strong> <p className="text-xs text-gray-500 mt-1">Kapan perbuatan pelanggaran dilakukan (Tanggal, Hari, Waktu).</p></div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-900 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
+                                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
                                     <div><strong className="text-gray-900 text-sm">Why:</strong> <p className="text-xs text-gray-500 mt-1">Mengapa perbuatan tersebut dilakukan.</p></div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-900 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
+                                    <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5"><Icons.Check /></div>
                                     <div><strong className="text-gray-900 text-sm">How:</strong> <p className="text-xs text-gray-500 mt-1">Bagaimana perbuatan pelanggaran itu dilakukan (Modus).</p></div>
                                 </div>
                             </div>
@@ -957,10 +975,10 @@
                                 </ul>
                             </div>
 
-                            <a href={WBS_INFO.formLink} target="_blank" className="block w-full bg-black hover:bg-gray-800 text-white p-6 rounded-3xl text-center shadow-lg transition-transform hover:-translate-y-1 active:scale-95 group">
+                            <a href={WBS_INFO.formLink} target="_blank" className="block w-full bg-blue-600 hover:bg-blue-700 text-white p-6 rounded-3xl text-center shadow-lg transition-transform hover:-translate-y-1 active:scale-95 group">
                                 <div className="flex justify-center mb-3 group-hover:scale-110 transition-transform"><Icons.Send /></div>
                                 <h3 className="text-lg font-bold">Buat Laporan Sekarang</h3>
-                                <p className="text-xs text-gray-400 mt-1">Via Form WBS AnterAja</p>
+                                <p className="text-xs text-blue-200 mt-1">Via Form WBS AnterAja</p>
                             </a>
                         </div>
                     </div>
@@ -968,22 +986,22 @@
                     <div>
                         <h3 className="text-sm font-extrabold text-gray-400 uppercase tracking-wider mb-4 px-2 text-center sm:text-left">Saluran Laporan Lainnya</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div className="bg-white p-5 rounded-2xl border border-gray-100 flex items-center gap-4 hover:border-black transition-colors group">
-                                <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 group-hover:bg-black group-hover:text-white transition-colors"><Icons.Info /></div>
+                            <div className="bg-white p-5 rounded-2xl border border-gray-100 flex items-center gap-4 hover:border-blue-200 transition-colors">
+                                <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600"><Icons.Info /></div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase">Email</p>
-                                    <a href={`mailto:${WBS_INFO.email}`} className="text-xs font-bold text-gray-900 group-hover:text-black">{WBS_INFO.email}</a>
+                                    <a href={`mailto:${WBS_INFO.email}`} className="text-xs font-bold text-gray-900 hover:text-blue-600">{WBS_INFO.email}</a>
                                 </div>
                             </div>
-                            <div className="bg-white p-5 rounded-2xl border border-gray-100 flex items-center gap-4 hover:border-black transition-colors group">
-                                <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 group-hover:bg-black group-hover:text-white transition-colors"><Icons.Phone /></div>
+                            <div className="bg-white p-5 rounded-2xl border border-gray-100 flex items-center gap-4 hover:border-blue-200 transition-colors">
+                                <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600"><Icons.Phone /></div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase">Telepon / SMS / WA</p>
-                                    <a href={`tel:${WBS_INFO.phone}`} className="text-xs font-bold text-gray-900 group-hover:text-black">{WBS_INFO.phone}</a>
+                                    <a href={`tel:${WBS_INFO.phone}`} className="text-xs font-bold text-gray-900 hover:text-blue-600">{WBS_INFO.phone}</a>
                                 </div>
                             </div>
-                            <div className="bg-white p-5 rounded-2xl border border-gray-100 flex items-center gap-4 hover:border-black transition-colors sm:col-span-1 group">
-                                <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 shrink-0 group-hover:bg-black group-hover:text-white transition-colors"><Icons.Folder /></div>
+                            <div className="bg-white p-5 rounded-2xl border border-gray-100 flex items-center gap-4 hover:border-blue-200 transition-colors sm:col-span-1">
+                                <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 shrink-0"><Icons.Folder /></div>
                                 <div>
                                     <p className="text-[10px] font-bold text-gray-400 uppercase">Surat</p>
                                     <p className="text-[10px] font-medium text-gray-600 leading-tight">Kuningan City Mall, Lt 6-7 Up Divisi Internal Audit.</p>
@@ -1008,12 +1026,13 @@
             const [dataReports, setDataReports] = useState(INITIAL_REPORTS);
             const [dataMonitoring, setDataMonitoring] = useState(INITIAL_MONITORING);
             const [dataDocuments, setDataDocuments] = useState(INITIAL_DOCUMENTS);
+            const [dataPhotos, setDataPhotos] = useState(INITIAL_PHOTOS);
             const [dataAccounts, setDataAccounts] = useState(ACCOUNT_DATA);
             const [dataWebUsers, setDataWebUsers] = useState([{ user: 'tim_ops', pass: 'kalsulam123' }]);
             const [showAccountModal, setShowAccountModal] = useState(false);
             const [editAccountData, setEditAccountData] = useState(null);
             const [editAccountIndex, setEditAccountIndex] = useState(null);
-            const [gridCols, setGridCols] = useState({ apps: 4, reports: 4, monitoring: 4, documents: 2 });
+            const [gridCols, setGridCols] = useState({ apps: 4, reports: 4, monitoring: 4, documents: 2, gallery: 4 });
 
             const [adminAuth, setAdminAuth] = useState({ id: '10001596', pass: '123' });
             const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
@@ -1120,12 +1139,13 @@
                         if(data.dataReports) setDataReports(data.dataReports);
                         if(data.dataMonitoring) setDataMonitoring(data.dataMonitoring);
                         if(data.dataDocuments) setDataDocuments(data.dataDocuments);
+                        if(data.dataPhotos) setDataPhotos(data.dataPhotos);
                         if(data.dataAccounts) setDataAccounts(data.dataAccounts);
                         if(data.dataWebUsers) setDataWebUsers(data.dataWebUsers);
                         if(data.gridCols) setGridCols(data.gridCols);
                         if(data.adminAuth) setAdminAuth(data.adminAuth);
                     } else {
-                        docRef.set({ dataApps: INITIAL_APPS, dataReports: INITIAL_REPORTS, dataMonitoring: INITIAL_MONITORING, dataDocuments: INITIAL_DOCUMENTS, dataAccounts: ACCOUNT_DATA, dataWebUsers: [{ user: 'tim_ops', pass: 'kalsulam123' }], gridCols: { apps: 4, reports: 4, monitoring: 4, documents: 2 }, adminAuth: { id: '10001596', pass: '123' } });
+                        docRef.set({ dataApps: INITIAL_APPS, dataReports: INITIAL_REPORTS, dataMonitoring: INITIAL_MONITORING, dataDocuments: INITIAL_DOCUMENTS, dataPhotos: INITIAL_PHOTOS, dataAccounts: ACCOUNT_DATA, dataWebUsers: [{ user: 'tim_ops', pass: 'kalsulam123' }], gridCols: { apps: 4, reports: 4, monitoring: 4, documents: 2, gallery: 4 }, adminAuth: { id: '10001596', pass: '123' } });
                     }
                 }, error => console.error("Snapshot error:", error));
 
@@ -1150,6 +1170,7 @@
                     else if (section === 'reports') { const n = dataReports.filter((_, i) => i !== index); setDataReports(n); saveToCloud({dataReports: n}); }
                     else if (section === 'monitoring') { const n = dataMonitoring.filter((_, i) => i !== index); setDataMonitoring(n); saveToCloud({dataMonitoring: n}); }
                     else if (section === 'documents') { const n = dataDocuments.filter((_, i) => i !== index); setDataDocuments(n); saveToCloud({dataDocuments: n}); }
+                    else if (section === 'gallery') { const n = dataPhotos.filter((_, i) => i !== index); setDataPhotos(n); saveToCloud({dataPhotos: n}); }
                 });
             };
 
@@ -1167,6 +1188,7 @@
                 else if (section === 'reports') { const n = updateArray(dataReports); setDataReports(n); saveToCloud({dataReports: n}); }
                 else if (section === 'monitoring') { const n = updateArray(dataMonitoring); setDataMonitoring(n); saveToCloud({dataMonitoring: n}); }
                 else if (section === 'documents') { const n = updateArray(dataDocuments); setDataDocuments(n); saveToCloud({dataDocuments: n}); }
+                else if (section === 'gallery') { const n = updateArray(dataPhotos); setDataPhotos(n); saveToCloud({dataPhotos: n}); }
                 
                 setShowAddModal(false);
                 setEditItemData(null);
@@ -1235,6 +1257,7 @@
                     case 'reports': return <ReportsView data={dataReports} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('reports')} gridCols={gridCols} onGridChange={handleGridChange} showAlert={showAlert} />;
                     case 'monitoring': return <MonitoringView data={dataMonitoring} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('monitoring')} gridCols={gridCols} onGridChange={handleGridChange} showAlert={showAlert} />;
                     case 'documents': return <DocumentsView data={dataDocuments} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('documents')} gridCols={gridCols} onGridChange={handleGridChange} showAlert={showAlert} />;
+                    case 'gallery': return <GalleryView data={dataPhotos} isEditMode={isEditMode} onDelete={handleDelete} onEdit={openEditModal} onAdd={() => openAddModal('gallery')} gridCols={gridCols} onGridChange={handleGridChange} />;
                     case 'wbs': return <WhistleblowingView />;
                     default: return <HomeView setActiveView={handleMenuClick} dataApps={dataApps} dataReports={dataReports} dataMonitoring={dataMonitoring} dataDocuments={dataDocuments} />;
                 }
@@ -1277,14 +1300,13 @@
                             <NavButton id="reports" active={activeView === 'reports'} onClick={() => handleMenuClick('reports')} icon={<Icons.Report />} label="Laporan" badge="+" />
                             <NavButton id="monitoring" active={activeView === 'monitoring'} onClick={() => handleMenuClick('monitoring')} icon={<Icons.Monitor />} label="Tim & Monitoring" />
                             <NavButton id="documents" active={activeView === 'documents'} onClick={() => handleMenuClick('documents')} icon={<Icons.Folder />} label="Pengaturan Dok" />
+                            <NavButton id="gallery" active={activeView === 'gallery'} onClick={() => handleMenuClick('gallery')} icon={<Icons.Photograph />} label="Galeri Foto" />
                         </nav>
                         
                         <div className="p-6 mt-auto space-y-6 shrink-0">
-                            <div className="space-y-1">
-                                <button onClick={() => setActiveView('wbs')} className="flex items-center gap-3 w-full px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-xl hover:bg-gray-50">
-                                    <Icons.Info /> Bantuan & Informasi (WBS)
-                                </button>
-                            </div>
+                            <button onClick={() => setActiveView('wbs')} className="flex items-center gap-3 w-full px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-xl hover:bg-gray-50">
+                                <Icons.Info /> Bantuan & Informasi (WBS)
+                            </button>
                         </div>
                     </aside>
                     
@@ -1338,6 +1360,8 @@
             const [color, setColor] = useState(initialData ? initialData.color : 'from-blue-500 to-blue-600');
             const [category, setCategory] = useState(initialData && initialData.category ? initialData.category : (section === 'reports' ? 'Daily' : 'SOP & Panduan Operasional'));
 
+            const isGallery = section === 'gallery';
+
             const defaultLinks = [{label: 'Buka', url: ''}, {label: '', url: ''}, {label: '', url: ''}];
             if (initialData) {
                 if (initialData.links && initialData.links.length > 0) {
@@ -1358,6 +1382,12 @@
 
             const handleSubmit = (e) => {
                 e.preventDefault();
+                
+                if (isGallery) {
+                    onSave({ name, desc, url: links[0].url }, section);
+                    return;
+                }
+
                 const validLinks = links.filter(l => l.url.trim() !== '');
                 const newItem = { name, desc, icon, color };
                 
@@ -1387,37 +1417,47 @@
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
                     <div className="bg-white dark:bg-dark-card w-full max-w-md rounded-2xl shadow-2xl overflow-hidden fade-in">
                         <div className="px-6 py-4 border-b border-gray-200 dark:border-dark-border flex justify-between items-center bg-gray-50 dark:bg-gray-800">
-                            <h3 className="font-bold text-lg text-gray-800 dark:text-gray-100">{initialData ? 'Edit Tombol' : 'Tambah Tombol Baru'}</h3>
+                            <h3 className="font-bold text-lg text-gray-800 dark:text-gray-100">{initialData ? (isGallery ? 'Edit Foto' : 'Edit Tombol') : (isGallery ? 'Tambah Foto' : 'Tambah Tombol Baru')}</h3>
                             <button onClick={onClose} className="text-gray-500 hover:text-gray-800 dark:hover:text-white"><Icons.X /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Nama Tombol</label>
-                                <input required type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 border rounded-xl bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black" placeholder="Contoh: Laporan Bulanan" />
+                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">{isGallery ? 'Judul Foto' : 'Nama Tombol'}</label>
+                                <input required type="text" value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white" placeholder={isGallery ? "Contoh: Briefing Pagi" : "Contoh: Laporan Bulanan"} />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Tautan / Tombol (Maksimal 3)</label>
+                                <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">{isGallery ? 'URL Gambar / Foto (Link Langsung .jpg/.png)' : 'Tautan / Tombol (Maksimal 3)'}</label>
                                 <div className="space-y-2">
-                                    {[0, 1, 2].map(i => (
-                                        <div key={i} className="flex gap-2">
-                                            <input type="text" value={links[i].label} onChange={e => handleLinkChange(i, 'label', e.target.value)} className="w-1/3 px-3 py-2 border rounded-xl bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder={`Label ${i+1}`} />
-                                            <input type="text" value={links[i].url} onChange={e => handleLinkChange(i, 'url', e.target.value)} className="w-2/3 px-3 py-2 border rounded-xl bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-xs focus:outline-none focus:ring-2 focus:ring-black" placeholder={`URL ${i+1} (https://...)`} />
+                                    {isGallery ? (
+                                        <div className="flex gap-2">
+                                            <input type="url" value={links[0].url} onChange={e => handleLinkChange(0, 'url', e.target.value)} className="w-full px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-xs" placeholder="https://contoh.com/foto.jpg" required />
                                         </div>
-                                    ))}
+                                    ) : (
+                                        [0, 1, 2].map(i => (
+                                            <div key={i} className="flex gap-2">
+                                                <input type="text" value={links[i].label} onChange={e => handleLinkChange(i, 'label', e.target.value)} className="w-1/3 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-xs" placeholder={`Label ${i+1}`} />
+                                                <input type="url" value={links[i].url} onChange={e => handleLinkChange(i, 'url', e.target.value)} className="w-2/3 px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-xs" placeholder={`URL ${i+1} (https://...)`} />
+                                            </div>
+                                        ))
+                                    )}
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Ikon (Emoji/Teks Singkat)</label>
-                                    <input required type="text" value={icon} onChange={e => setIcon(e.target.value)} className="w-full px-3 py-2 border rounded-xl bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black" maxLength="3" />
+                            
+                            {!isGallery && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Ikon (Emoji/Teks Singkat)</label>
+                                        <input required type="text" value={icon} onChange={e => setIcon(e.target.value)} className="w-full px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white" maxLength="3" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Warna</label>
+                                        <select value={color} onChange={e => setColor(e.target.value)} className="w-full px-3 py-2 border rounded-lg bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white">
+                                            {colors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                        </select>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Warna</label>
-                                    <select value={color} onChange={e => setColor(e.target.value)} className="w-full px-3 py-2 border rounded-xl bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-black">
-                                        {colors.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
-                                </div>
-                            </div>
+                            )}
+
                             {section === 'reports' && (
                                 <div>
                                     <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Kategori Laporan</label>
@@ -1512,6 +1552,86 @@
                             </div>
                         </form>
                     </div>
+                </div>
+            );
+        }
+
+        function ItemCard({ item, isEditMode, onDelete, onEdit, showAlert }) {
+            const hasMultipleLinks = item.links && item.links.length > 0;
+            const isLinkEmpty = !item.url || item.url === '#';
+            
+            const cardClass = `group relative flex flex-col justify-between p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl transition-all duration-300 h-full transform hover:-translate-y-1 hover:shadow-xl hover:border-gray-300 ${isLinkEmpty ? 'border-orange-100 bg-orange-50/30' : ''}`;
+
+            const handleCardClick = (e, url) => {
+                if (url === '#' || url === '' || !url) {
+                    e.preventDefault();
+                    if (showAlert) showAlert("Akses Tertunda", "Fitur ini sedang dalam proses pengerjaan.");
+                }
+            };
+
+            return (
+                <div className="relative h-full">
+                    {isEditMode && (
+                        <div className="absolute -top-3 -right-3 z-20 flex gap-1">
+                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(); }} className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shadow-sm hover:bg-blue-600 hover:text-white transition-colors">
+                                <Icons.Edit />
+                            </button>
+                            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }} className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center shadow-sm hover:bg-red-600 hover:text-white transition-colors">
+                                <Icons.Trash />
+                            </button>
+                        </div>
+                    )}
+                    
+                    {hasMultipleLinks ? (
+                        <div className={cardClass}>
+                            <div className="flex flex-col lg:flex-row items-start gap-3 sm:gap-4 mb-4">
+                                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-lg sm:text-xl bg-gradient-to-br ${item.color || 'from-gray-100 to-gray-200'} text-white shadow-inner flex-shrink-0`}>
+                                    {item.icon}
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-gray-900 text-xs sm:text-sm group-hover:text-black transition-colors line-clamp-2">{item.name}</h4>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                                        <span className="text-[9px] sm:text-[10px] font-semibold text-gray-500 uppercase tracking-wider">{item.category || 'Koleksi'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-2 mt-auto">
+                                {item.links.map((link, idx) => {
+                                    const isEmpty = link.url === '#' || !link.url;
+                                    return (
+                                        <a key={idx} href={link.url} target={isEmpty ? '_self' : '_blank'} onClick={(e) => handleCardClick(e, link.url)} className={`flex items-center justify-between px-2.5 py-2 sm:px-3 rounded-xl text-[10px] sm:text-xs font-bold transition-all duration-300 ${isEmpty ? 'bg-orange-50 text-orange-600' : 'bg-gray-50 text-gray-600 group-hover:bg-black group-hover:text-white shadow-sm'}`}>
+                                            <span className="truncate mr-2">{link.label}</span>
+                                            {isEmpty ? <Icons.Warning /> : <span className="transform group-hover:translate-x-1 transition-transform">→</span>}
+                                        </a>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    ) : (
+                        <a href={item.url} target={isLinkEmpty ? '_self' : '_blank'} onClick={(e) => handleCardClick(e, item.url)} className={cardClass}>
+                            <div className="flex flex-col lg:flex-row items-start gap-3 sm:gap-4 mb-4">
+                                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-lg sm:text-xl bg-gradient-to-br ${item.color || 'from-gray-100 to-gray-200'} text-white shadow-inner flex-shrink-0`}>
+                                    {item.icon}
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="font-bold text-gray-900 text-xs sm:text-sm group-hover:text-black transition-colors line-clamp-2">{item.name}</h4>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                        <span className={`w-1.5 h-1.5 rounded-full ${isLinkEmpty ? 'bg-orange-400' : 'bg-green-400'}`}></span>
+                                        <span className="text-[9px] sm:text-[10px] font-semibold text-gray-500 uppercase tracking-wider">{isLinkEmpty ? 'On Hold' : (item.category || 'Tersedia')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-auto">
+                                <p className="text-[10px] sm:text-xs text-gray-500 mb-3 sm:mb-4 line-clamp-2">{item.desc || 'Klik untuk mengakses layanan ini'}</p>
+                                <div className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded-xl text-gray-500 group-hover:bg-black group-hover:text-white transition-all duration-300 shadow-sm">
+                                    <span className="text-[9px] sm:text-[10px] font-bold">Buka Akses</span>
+                                    <span className="transform group-hover:translate-x-1 transition-transform font-bold">→</span>
+                                </div>
+                            </div>
+                        </a>
+                    )}
                 </div>
             );
         }
