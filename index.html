@@ -248,17 +248,13 @@
             );
         }
         
-        function RightPanel({ firebaseDb, appId, isEditMode, setIsEditMode, isAdminLoggedIn, setIsAdminLoggedIn, adminAuth, saveToCloud, loggedInUser, setLoggedInUser, dataWebUsers, setDataWebUsers, showConfirm }) {
+        function RightPanel({ firebaseDb, appId, isEditMode, setIsEditMode, isAdminLoggedIn, setIsAdminLoggedIn, adminAuth, saveToCloud, loggedInUser, setLoggedInUser, dataWebUsers, setDataWebUsers, showConfirm, setShowLogin }) {
             const { useState, useEffect, useRef } = React;
             const [messages, setMessages] = useState([]);
             const [inputValue, setInputValue] = useState('');
             const [editingMsgId, setEditingMsgId] = useState(null);
             const [editMsgText, setEditMsgText] = useState('');
-            const [showLogin, setShowLogin] = useState(false);
             const [showSettings, setShowSettings] = useState(false);
-            const [loginId, setLoginId] = useState('');
-            const [loginPass, setLoginPass] = useState('');
-            const [loginError, setLoginError] = useState('');
             
             const [newAdminId, setNewAdminId] = useState('');
             const [newAdminPass, setNewAdminPass] = useState('');
@@ -289,30 +285,6 @@
             useEffect(() => {
                 messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
             }, [messages]);
-
-            const handleLoginSubmit = (e) => {
-                e.preventDefault();
-                if (loginId === adminAuth.id && loginPass === adminAuth.pass) {
-                    setIsAdminLoggedIn(true);
-                    setLoggedInUser({ user: "Admin" });
-                    setShowLogin(false);
-                    setLoginId('');
-                    setLoginPass('');
-                    setLoginError('');
-                } else {
-                    const userMatch = dataWebUsers?.find(u => u.user === loginId && u.pass === loginPass);
-                    if (userMatch) {
-                        setIsAdminLoggedIn(false);
-                        setLoggedInUser(userMatch);
-                        setShowLogin(false);
-                        setLoginId('');
-                        setLoginPass('');
-                        setLoginError('');
-                    } else {
-                        setLoginError('ID atau Password salah!');
-                    }
-                }
-            };
 
             const handleSaveSettings = (e) => {
                 e.preventDefault();
@@ -504,31 +476,6 @@
                             </div>
                         )}
                     </div>
-
-                    {showLogin && (
-                        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
-                            <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden fade-in border border-gray-100">
-                                <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-[#f8f9fa]">
-                                    <h3 className="font-extrabold text-lg text-gray-900">Login Sistem</h3>
-                                    <button onClick={() => setShowLogin(false)} className="text-gray-400 hover:text-red-500 transition-colors"><Icons.X /></button>
-                                </div>
-                                <form onSubmit={handleLoginSubmit} className="p-6 space-y-5">
-                                    <div>
-                                        <label className="block text-xs font-extrabold text-gray-700 mb-2 uppercase tracking-wider">ID Pengguna</label>
-                                        <input type="text" value={loginId} onChange={e => setLoginId(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium" placeholder="Masukkan ID" required />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-extrabold text-gray-700 mb-2 uppercase tracking-wider">Password</label>
-                                        <input type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium" placeholder="Masukkan Password" required />
-                                        {loginError && <p className="text-red-500 text-xs mt-2 font-bold">{loginError}</p>}
-                                    </div>
-                                    <div className="pt-2">
-                                        <button type="submit" className="w-full py-3 bg-black text-white font-extrabold rounded-xl hover:bg-gray-800 transition-colors shadow-md">Masuk</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
 
                     {showSettings && (
                         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4">
@@ -1102,6 +1049,11 @@
             const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
             const [isEditMode, setIsEditMode] = useState(false);
             const [loggedInUser, setLoggedInUser] = useState(null);
+            
+            const [showLogin, setShowLogin] = useState(false);
+            const [loginId, setLoginId] = useState('');
+            const [loginPass, setLoginPass] = useState('');
+            const [loginError, setLoginError] = useState('');
 
             const [firebaseDb, setFirebaseDb] = useState(null);
             const [user, setUser] = useState(null);
@@ -1287,6 +1239,30 @@
                 setGridCols(n);
                 saveToCloud({gridCols: n});
             };
+            
+            const handleLoginSubmit = (e) => {
+                e.preventDefault();
+                if (loginId === adminAuth.id && loginPass === adminAuth.pass) {
+                    setIsAdminLoggedIn(true);
+                    setLoggedInUser({ user: "Admin" });
+                    setShowLogin(false);
+                    setLoginId('');
+                    setLoginPass('');
+                    setLoginError('');
+                } else {
+                    const userMatch = dataWebUsers?.find(u => u.user === loginId && u.pass === loginPass);
+                    if (userMatch) {
+                        setIsAdminLoggedIn(false);
+                        setLoggedInUser(userMatch);
+                        setShowLogin(false);
+                        setLoginId('');
+                        setLoginPass('');
+                        setLoginError('');
+                    } else {
+                        setLoginError('ID atau Password salah!');
+                    }
+                }
+            };
 
             const openAddAccountModal = () => {
                 setEditAccountData(null);
@@ -1330,21 +1306,47 @@
             return (
                 <div className="w-full h-full bg-white flex overflow-hidden relative">
                     
-                    <div className="md:hidden absolute top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 p-4 flex justify-between items-center shrink-0">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-extrabold text-sm">P</div>
-                            <h1 className="font-extrabold text-gray-900 text-sm tracking-tight">portalhub.</h1>
+                    <div className="lg:hidden absolute top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 p-3 flex justify-between items-center shrink-0">
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -ml-1 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                                <Icons.Menu />
+                            </button>
+                            <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center text-white font-extrabold text-xs">P</div>
+                                <h1 className="font-extrabold text-gray-900 text-sm tracking-tight hidden sm:block">portalhub.</h1>
+                            </div>
                         </div>
-                        <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 text-gray-600">
-                            <Icons.Menu />
-                        </button>
+
+                        <div className="flex items-center gap-3">
+                            {loggedInUser ? (
+                                <div className="flex items-center gap-3">
+                                    <button onClick={() => { setIsAdminLoggedIn(false); setIsEditMode(false); setLoggedInUser(null); }} className="text-gray-400 hover:text-red-500 flex items-center justify-center p-1" title="Logout">
+                                        <Icons.Logout />
+                                    </button>
+                                    {loggedInUser.user === 'Admin' ? (
+                                        <img src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile" className="w-8 h-8 rounded-full shadow-sm object-cover border border-gray-200" />
+                                    ) : (
+                                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shadow-sm tracking-wider uppercase">
+                                            {loggedInUser.user.substring(0, 2)}
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-3">
+                                    <button onClick={() => setShowLogin(true)} className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-colors shadow-sm" title="Login">
+                                        <Icons.Login /> <span className="hidden sm:inline">Login</span>
+                                    </button>
+                                    <img src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile Gustiadi" className="w-8 h-8 rounded-full shadow-sm object-cover border border-gray-200" />
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {isMobileMenuOpen && (
-                        <div className="fixed inset-0 bg-black/20 z-40 md:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsMobileMenuOpen(false)}></div>
+                        <div className="fixed inset-0 bg-black/20 z-40 lg:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsMobileMenuOpen(false)}></div>
                     )}
 
-                    <aside className={`fixed md:relative inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 flex-shrink-0 flex flex-col h-full transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+                    <aside className={`fixed lg:relative inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 flex-shrink-0 flex flex-col h-full transform transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
                         <div className="p-8 flex items-center gap-3 shrink-0">
                             <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-white font-extrabold text-sm">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1367,14 +1369,29 @@
                             <NavButton id="gallery" active={activeView === 'gallery'} onClick={() => handleMenuClick('gallery')} icon={<Icons.Photograph />} label="Galeri Konten" />
                         </nav>
                         
-                        <div className="p-6 mt-auto space-y-6 shrink-0">
-                            <button onClick={() => setActiveView('wbs')} className="flex items-center gap-3 w-full px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-xl hover:bg-gray-50">
+                        <div className="p-6 mt-auto space-y-5 shrink-0 border-t border-gray-50 lg:border-t-0">
+                            <div className="lg:hidden bg-gray-50 p-4 rounded-2xl flex items-center justify-between border border-gray-100">
+                                <div className="flex items-center gap-3">
+                                    <img src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile" className="w-10 h-10 rounded-full border border-gray-200 object-cover shadow-sm" />
+                                    <div>
+                                        <p className="text-xs font-extrabold text-gray-900">{CONTACT.name}</p>
+                                        <p className="text-[10px] font-medium text-gray-500">Hubungi Admin</p>
+                                    </div>
+                                </div>
+                                <a href={CONTACT.wa_link} target="_blank" className="w-8 h-8 bg-white shadow-sm text-green-600 rounded-full flex items-center justify-center hover:bg-green-50 hover:scale-105 transition-all">
+                                    <Icons.Phone />
+                                </a>
+                            </div>
+                            <button onClick={() => setActiveView('wbs')} className="flex items-center gap-3 w-full px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-900 rounded-xl hover:bg-gray-50 transition-colors">
                                 <Icons.Info /> Bantuan & Informasi (WBS)
                             </button>
+                            <p className="lg:hidden text-center text-[9px] text-gray-400 font-medium uppercase tracking-wider mt-4 leading-relaxed">
+                                &copy; 2026 {APP_TITLE} {APP_SUBTITLE}.<br/>Designed by {CONTACT.name}.
+                            </p>
                         </div>
                     </aside>
                     
-                    <main className="flex-1 h-full overflow-y-auto bg-white pt-20 md:pt-0 relative">
+                    <main className="flex-1 h-full overflow-y-auto bg-white pt-16 lg:pt-0 relative">
                         <div className="p-4 md:p-10 lg:p-12 min-h-full flex flex-col">
                             {isEditMode && (
                                 <div className="bg-blue-50 border border-blue-100 text-blue-800 px-4 py-3 rounded-2xl mb-8 flex items-center shadow-sm shrink-0">
@@ -1391,14 +1408,14 @@
                                 {renderContent()}
                             </div>
                             
-                            <footer className="mt-16 pt-8 border-t border-gray-100 text-center text-gray-400 text-[10px] font-medium uppercase tracking-wider pb-8 shrink-0">
+                            <footer className="mt-16 pt-8 border-t border-gray-100 text-center text-gray-400 text-[10px] font-medium uppercase tracking-wider pb-16 lg:pb-8 shrink-0">
                                 &copy; 2026 {APP_TITLE} {APP_SUBTITLE}. Designed by {CONTACT.name}.
                             </footer>
                         </div>
                     </main>
 
                     <aside className="hidden lg:flex w-[320px] bg-white border-l border-gray-100 flex-shrink-0 p-6 overflow-hidden flex-col h-full">
-                        <RightPanel firebaseDb={firebaseDb} appId={appId} isEditMode={isEditMode} setIsEditMode={setIsEditMode} isAdminLoggedIn={isAdminLoggedIn} setIsAdminLoggedIn={setIsAdminLoggedIn} adminAuth={adminAuth} saveToCloud={saveToCloud} loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} dataWebUsers={dataWebUsers} setDataWebUsers={setDataWebUsers} showConfirm={showConfirm} />
+                        <RightPanel firebaseDb={firebaseDb} appId={appId} isEditMode={isEditMode} setIsEditMode={setIsEditMode} isAdminLoggedIn={isAdminLoggedIn} setIsAdminLoggedIn={setIsAdminLoggedIn} adminAuth={adminAuth} saveToCloud={saveToCloud} loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} dataWebUsers={dataWebUsers} setDataWebUsers={setDataWebUsers} showConfirm={showConfirm} setShowLogin={setShowLogin} />
                     </aside>
 
                     <CustomModal config={modalConfig} />
@@ -1412,6 +1429,31 @@
                             initialData={editAccountData} 
                             existingApps={[...new Set(dataAccounts.map(r => r.app).filter(Boolean))]} 
                         />
+                    )}
+
+                    {showLogin && (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4">
+                            <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden fade-in border border-gray-100">
+                                <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-[#f8f9fa]">
+                                    <h3 className="font-extrabold text-lg text-gray-900">Login Sistem</h3>
+                                    <button onClick={() => setShowLogin(false)} className="text-gray-400 hover:text-red-500 transition-colors"><Icons.X /></button>
+                                </div>
+                                <form onSubmit={handleLoginSubmit} className="p-6 space-y-5">
+                                    <div>
+                                        <label className="block text-xs font-extrabold text-gray-700 mb-2 uppercase tracking-wider">ID Pengguna</label>
+                                        <input type="text" value={loginId} onChange={e => setLoginId(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium" placeholder="Masukkan ID" required />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-extrabold text-gray-700 mb-2 uppercase tracking-wider">Password</label>
+                                        <input type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium" placeholder="Masukkan Password" required />
+                                        {loginError && <p className="text-red-500 text-xs mt-2 font-bold">{loginError}</p>}
+                                    </div>
+                                    <div className="pt-2">
+                                        <button type="submit" className="w-full py-3 bg-black text-white font-extrabold rounded-xl hover:bg-gray-800 transition-colors shadow-md">Masuk</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     )}
                 </div>
             );
