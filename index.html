@@ -248,7 +248,7 @@
             );
         }
         
-        function RightPanel({ firebaseDb, appId, isEditMode, setIsEditMode, isAdminLoggedIn, setIsAdminLoggedIn, adminAuth, saveToCloud, loggedInUser, setLoggedInUser, dataWebUsers, setDataWebUsers, showConfirm, setShowLogin }) {
+        function RightPanel({ firebaseDb, appId, isEditMode, setIsEditMode, isAdminLoggedIn, setIsAdminLoggedIn, adminAuth, saveToCloud, loggedInUser, setLoggedInUser, dataWebUsers, setDataWebUsers, showConfirm, setShowLogin, onClose }) {
             const { useState, useEffect, useRef } = React;
             const [messages, setMessages] = useState([]);
             const [inputValue, setInputValue] = useState('');
@@ -366,8 +366,11 @@
             };
 
             return (
-                <div className="h-full flex flex-col pt-2 overflow-hidden w-full">
+                <div className="h-full flex flex-col pt-2 overflow-hidden w-full relative">
                     <div className="bg-[#f8f9fa] rounded-3xl p-6 flex flex-col items-center text-center shadow-sm relative shrink-0">
+                        <button onClick={onClose} className="absolute top-4 left-4 text-gray-400 hover:text-red-500 xl:hidden p-1 transition-colors">
+                            <Icons.X />
+                        </button>
                         <div className="absolute top-4 right-4 flex gap-2">
                             {loggedInUser ? (
                                 <>
@@ -1033,6 +1036,7 @@
         function App() {
             const [activeView, setActiveView] = useState('home');
             const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+            const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
             const [darkMode, setDarkMode] = useState(false);
             const [showAddModal, setShowAddModal] = useState(false);
             const [currentAddSection, setCurrentAddSection] = useState('');
@@ -1330,11 +1334,11 @@
                                         <Icons.Logout />
                                     </button>
                                     {!isAdminLoggedIn ? (
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shadow-sm border border-blue-200 shrink-0">
+                                        <div onClick={() => setIsRightPanelOpen(true)} className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs shadow-sm border border-blue-200 shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all">
                                             {loggedInUser.user.substring(0, 2).toUpperCase()}
                                         </div>
                                     ) : (
-                                        <img src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile" className="w-8 h-8 rounded-full shadow-sm object-cover border border-gray-200 shrink-0" />
+                                        <img onClick={() => setIsRightPanelOpen(true)} src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile" className="w-8 h-8 rounded-full shadow-sm object-cover border border-gray-200 shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all" />
                                     )}
                                 </>
                             ) : (
@@ -1342,7 +1346,7 @@
                                     <button onClick={() => setShowLogin(true)} className="text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-colors shadow-sm" title="Login">
                                         <Icons.Login /> <span className="hidden sm:inline">Login</span>
                                     </button>
-                                    <img src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile" className="w-8 h-8 rounded-full shadow-sm object-cover border border-gray-200 shrink-0" />
+                                    <img onClick={() => setIsRightPanelOpen(true)} src="https://i.ibb.co.com/vCHJJgRp/photoshoot-4.png" alt="Profile" className="w-8 h-8 rounded-full shadow-sm object-cover border border-gray-200 shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all" />
                                 </>
                             )}
                         </div>
@@ -1420,8 +1424,12 @@
                         </div>
                     </main>
 
-                    <aside className="hidden xl:flex w-[320px] bg-white border-l border-gray-100 flex-shrink-0 p-6 overflow-hidden flex-col h-full">
-                        <RightPanel firebaseDb={firebaseDb} appId={appId} isEditMode={isEditMode} setIsEditMode={setIsEditMode} isAdminLoggedIn={isAdminLoggedIn} setIsAdminLoggedIn={setIsAdminLoggedIn} adminAuth={adminAuth} saveToCloud={saveToCloud} loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} dataWebUsers={dataWebUsers} setDataWebUsers={setDataWebUsers} showConfirm={showConfirm} setShowLogin={setShowLogin} />
+                    {isRightPanelOpen && (
+                        <div className="fixed inset-0 bg-black/20 z-40 xl:hidden backdrop-blur-sm transition-opacity" onClick={() => setIsRightPanelOpen(false)}></div>
+                    )}
+
+                    <aside className={`fixed xl:relative inset-y-0 right-0 z-50 w-[320px] max-w-[85vw] bg-white border-l border-gray-100 flex-shrink-0 p-6 overflow-hidden flex flex-col h-full transform transition-transform duration-300 ${isRightPanelOpen ? 'translate-x-0' : 'translate-x-full xl:translate-x-0'}`}>
+                        <RightPanel firebaseDb={firebaseDb} appId={appId} isEditMode={isEditMode} setIsEditMode={setIsEditMode} isAdminLoggedIn={isAdminLoggedIn} setIsAdminLoggedIn={setIsAdminLoggedIn} adminAuth={adminAuth} saveToCloud={saveToCloud} loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} dataWebUsers={dataWebUsers} setDataWebUsers={setDataWebUsers} showConfirm={showConfirm} setShowLogin={setShowLogin} onClose={() => setIsRightPanelOpen(false)} />
                     </aside>
 
                     <CustomModal config={modalConfig} />
