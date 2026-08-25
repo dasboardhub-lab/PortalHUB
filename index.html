@@ -132,9 +132,9 @@
         ];
 
         const INITIAL_HANDOVERS = [
-            { origin: "MKS", destinasi: "BPP", id: "VND-BPP-01", pass: "Bpp!2026", cutoff: "15:00", vendor: "Lion Parcel", keterangan: "Prioritas muatan pagi" },
-            { origin: "MKS", destinasi: "KDI", id: "VND-KDI-02", pass: "Kdi@2026", cutoff: "14:00", vendor: "Garuda Cargo", keterangan: "Gunakan karung khusus" },
-            { origin: "BPP", destinasi: "SMR", id: "VND-SMR-03", pass: "Smr#2026", cutoff: "16:00", vendor: "Mitra Lokal", keterangan: "Hubungi PIC sebelum tiba" }
+            { origin: "MKS", destinasi: "BPP\nTRK", id: "VND-BPP-01", pass: "Bpp!2026", cutoff: "15:00", vendor: "Lion Parcel", keterangan: "Prioritas muatan pagi. Pastikan dokumen AWB dan resi sudah disiapkan secara lengkap sebelum driver tiba. Hubungi koordinator jika ada keterlambatan." },
+            { origin: "MKS", destinasi: "KDI", id: "VND-KDI-02", pass: "Kdi@2026", cutoff: "14:00", vendor: "Garuda Cargo", keterangan: "Gunakan karung khusus." },
+            { origin: "BPP", destinasi: "SMR\nBXT", id: "VND-SMR-03", pass: "Smr#2026", cutoff: "16:00", vendor: "Mitra Lokal", keterangan: "Hubungi PIC lapangan 30 menit sebelum tiba di lokasi agar loading dock bisa dipersiapkan." }
         ];
 
         const INITIAL_PHOTOS = [
@@ -665,6 +665,7 @@
         function HandoverView({ data, isEditMode, onDelete, onEdit, onAdd }) {
             const { useState } = React;
             const [searchTerm, setSearchTerm] = useState('');
+            const [selectedDetail, setSelectedDetail] = useState(null);
             
             const filteredData = data.filter(item => 
                 (item.origin && item.origin.toLowerCase().includes(searchTerm.toLowerCase())) || 
@@ -674,7 +675,7 @@
             );
 
             return (
-                <div className="space-y-8 fade-in">
+                <div className="space-y-8 fade-in relative">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h2 className="text-2xl font-extrabold text-gray-900">Data Serah Terima</h2>
@@ -713,12 +714,33 @@
                                     return (
                                         <tr key={index} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                                             <td className="p-4 font-bold text-gray-900">{item.origin}</td>
-                                            <td className="p-4 font-bold text-gray-900">{item.destinasi}</td>
+                                            <td className="p-4 font-bold text-gray-900 align-top">
+                                                <div className="flex flex-col gap-1.5 mt-1">
+                                                    {(item.destinasi || '').split('\n').map((dest, i) => dest.trim() ? (
+                                                        <span key={i} className="bg-gray-100 px-2 py-1 rounded-md text-xs font-bold inline-block w-max border border-gray-200">
+                                                            {dest.trim()}
+                                                        </span>
+                                                    ) : null)}
+                                                </div>
+                                            </td>
                                             <td className="p-4 text-gray-600"><span className="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md text-[10px] font-bold">{item.vendor}</span></td>
                                             <td className="p-4 text-gray-800 font-medium">{item.id}</td>
                                             <td className="p-4 font-mono text-gray-500 text-xs">{item.pass}</td>
                                             <td className="p-4 text-red-500 font-bold">{item.cutoff}</td>
-                                            <td className="p-4 text-gray-500 text-xs max-w-[150px] truncate" title={item.keterangan}>{item.keterangan || '-'}</td>
+                                            <td className="p-4 text-xs max-w-[200px]">
+                                                {item.keterangan ? (
+                                                    item.keterangan.length > 35 ? (
+                                                        <div className="cursor-pointer group" onClick={() => setSelectedDetail(item)}>
+                                                            <p className="text-gray-500 truncate group-hover:text-blue-600 transition-colors">{item.keterangan}</p>
+                                                            <span className="text-[10px] text-blue-500 font-bold mt-1 inline-flex items-center gap-1 group-hover:underline">
+                                                                Baca Semua <Icons.External />
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-gray-500">{item.keterangan}</span>
+                                                    )
+                                                ) : <span className="text-gray-400 italic">-</span>}
+                                            </td>
                                             {isEditMode && (
                                                 <td className="p-4 text-right">
                                                     <button onClick={() => onEdit(actualIndex, item)} className="text-blue-500 hover:bg-blue-50 p-2 rounded-lg mr-2"><Icons.Edit /></button>
@@ -736,6 +758,31 @@
                             </tbody>
                         </table>
                     </div>
+
+                    {selectedDetail && (
+                        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4 fade-in" onClick={() => setSelectedDetail(null)}>
+                            <div className="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                                    <h3 className="font-bold text-gray-900 flex items-center gap-2"><Icons.Info /> Detail Keterangan</h3>
+                                    <button onClick={() => setSelectedDetail(null)} className="text-gray-400 hover:text-red-500 transition-colors"><Icons.X /></button>
+                                </div>
+                                <div className="p-6">
+                                    <div className="mb-4 bg-blue-50 text-blue-800 p-3 rounded-xl border border-blue-100">
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-blue-500 mb-1">Rute Serah Terima</p>
+                                        <p className="font-bold text-sm">
+                                            {selectedDetail.origin} &rarr; {(selectedDetail.destinasi || '').replace(/\n/g, ', ')}
+                                        </p>
+                                    </div>
+                                    <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                        {selectedDetail.keterangan}
+                                    </p>
+                                </div>
+                                <div className="p-4 border-t border-gray-100 bg-gray-50 text-right">
+                                    <button onClick={() => setSelectedDetail(null)} className="px-5 py-2 bg-black text-white font-bold rounded-xl text-xs hover:bg-gray-800 transition-colors">Tutup</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
@@ -1603,8 +1650,8 @@
                                     <input required type="text" value={origin} onChange={e => setOrigin(e.target.value)} className="w-full px-3 py-2 border rounded-xl bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black" placeholder="Cth: MKS" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Destinasi</label>
-                                    <input required type="text" value={destinasi} onChange={e => setDestinasi(e.target.value)} className="w-full px-3 py-2 border rounded-xl bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black" placeholder="Cth: BPP" />
+                                    <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Destinasi (Bisa di-Enter)</label>
+                                    <textarea required value={destinasi} onChange={e => setDestinasi(e.target.value)} className="w-full px-3 py-2 border rounded-xl bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-black" placeholder="Cth: BPP&#10;TRK" rows="2"></textarea>
                                 </div>
                             </div>
                             <div>
