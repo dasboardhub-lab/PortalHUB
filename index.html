@@ -227,7 +227,8 @@
                     msgs.sort((a, b) => a.timestamp - b.timestamp);
                     setMessages(msgs);
                 }, (error) => {
-                    console.error("Error fetching messages:", error);
+                    console.warn("Peringatan Firebase (Messages):", error.message);
+                    setMessages([{ id: 'err', text: 'Gagal memuat pesan. Firebase Rules Anda memblokir akses (Missing permissions).', sender: 'Sistem', timestamp: Date.now(), avatar: 'https://ui-avatars.com/api/?name=System&background=ef4444&color=fff&rounded=true' }]);
                 });
 
                 return () => unsubscribe();
@@ -1091,7 +1092,8 @@
                     }
 
                     try {
-                        const currentAppId = typeof __app_id !== 'undefined' ? __app_id : 'portal-hub-app';
+                        // KEMBALI KE RUANGAN LAMA: Tempat data Anda sebelumnya tersimpan aman
+                        const currentAppId = 'default-app-id'; 
                         setAppId(currentAppId);
 
                         if(window.firebase) {
@@ -1110,6 +1112,7 @@
                     } catch(e) { 
                         console.error("Firebase init error", e); 
                         setIsOffline(true); 
+                        showAlert("Koneksi Firebase Diblokir!", "Proses Login ditolak! Buka Console Firebase Anda -> menu Authentication -> Sign-in Method, lalu AKTIFKAN pilihan 'Anonymous'. Jika tidak, aplikasi hanya akan menampilkan data bawaan pabrik yang akan kereset terus.");
                     }
                 };
 
@@ -1138,7 +1141,18 @@
                     } else {
                         docRef.set({ dataApps: INITIAL_APPS, dataReports: INITIAL_REPORTS, dataMonitoring: INITIAL_MONITORING, dataHandovers: INITIAL_HANDOVERS, dataPhotos: INITIAL_PHOTOS, dataWebUsers: [{ user: 'tim_ops', pass: 'kalsulam123' }], gridCols: { apps: 4, reports: 4, monitoring: 4, gallery: 4 }, adminAuth: { id: '10001596', pass: '123' } });
                     }
-                }, error => console.error("Snapshot error:", error));
+                }, error => {
+                    console.warn("Peringatan Firebase (Settings):", error.message);
+                    // Fallback ke data bawaan agar aplikasi tidak crash/kosong saat akses ditolak
+                    setDataApps(INITIAL_APPS);
+                    setDataReports(INITIAL_REPORTS);
+                    setDataMonitoring(INITIAL_MONITORING);
+                    setDataHandovers(INITIAL_HANDOVERS);
+                    setDataPhotos(INITIAL_PHOTOS);
+                    
+                    showAlert("Akses Database Ditolak!", "Pesan error: 'Missing or insufficient permissions'. Artinya Rules Firebase Anda masih mengunci database. Untuk sementara, aplikasi menampilkan data default.");
+                    setSyncStatus('error');
+                });
 
                 return () => unsubscribe();
             }, [user, firebaseDb, appId]);
@@ -1158,7 +1172,7 @@
                     setTimeout(() => setSyncStatus('idle'), 3000);
                 } 
                 catch (e) { 
-                    console.error("Error saving:", e); 
+                    console.warn("Peringatan Firebase (Save):", e.message); 
                     setSyncStatus('error');
                     showAlert("Gagal Menyimpan ke Cloud", "Data gagal disimpan! Database Firebase memblokir perubahan. Anda harus membuka Rules Firestore dan mengaktifkan Anonymous Auth. Error: " + e.message);
                 }
