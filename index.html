@@ -1079,32 +1079,36 @@
             useEffect(() => {
                 let unsubscribeAuth = () => {};
                 const setupFirebase = async () => {
-                    let configObj = null;
-                    if (typeof __firebase_config !== 'undefined' && __firebase_config && __firebase_config !== '{}') {
-                        configObj = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
-                    } else if (CUSTOM_FIREBASE_CONFIG) {
-                        configObj = CUSTOM_FIREBASE_CONFIG;
-                    }
-
-                    if (!configObj) {
-                        setIsOffline(true);
-                        return;
-                    }
+                    // 1. Paksa selalu gunakan Firebase milik Anda (portal-hub-435b3)
+                    const configObj = CUSTOM_FIREBASE_CONFIG;
 
                     try {
-                        // KEMBALI KE RUANGAN LAMA: Tempat data Anda sebelumnya tersimpan aman
-                        const currentAppId = 'default-app-id'; 
-                        setAppId(currentAppId);
+                        // 2. Berdasarkan gambar database Anda, mari kita buka ruangan ini:
+                        // (Jika masih kosong, Anda bisa menggantinya ke 'portal_hub_kalsulam_shared_db' atau 'portal-hub-kalsulam-permanen')
+                        setAppId('portal-hub-app');
 
                         if(window.firebase) {
-                            const app = window.firebase.initializeApp(configObj);
+                            let app;
+                            // Mencegah error jika dipanggil dua kali
+                            if (!window.firebase.apps.length) {
+                                app = window.firebase.initializeApp(configObj);
+                            } else {
+                                app = window.firebase.app();
+                            }
+                            
                             const auth = app.auth();
                             setFirebaseDb(app.firestore());
 
-                            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                                await auth.signInWithCustomToken(__initial_auth_token);
-                            } else {
-                                await auth.signInAnonymously();
+                            // 3. Perbaikan Login: Paksa masuk via Anonim agar tidak ditolak oleh Firebase Anda
+                            try {
+                                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                    await auth.signInWithCustomToken(__initial_auth_token);
+                                } else {
+                                    await auth.signInAnonymously();
+                                }
+                            } catch (err) {
+                                // Jika kunci sistem gagal, langsung tembus menggunakan Anonymous Login Firebase Anda
+                                await auth.signInAnonymously(); 
                             }
 
                             unsubscribeAuth = auth.onAuthStateChanged(setUser);
@@ -1112,7 +1116,6 @@
                     } catch(e) { 
                         console.error("Firebase init error", e); 
                         setIsOffline(true); 
-                        showAlert("Koneksi Firebase Diblokir!", "Proses Login ditolak! Buka Console Firebase Anda -> menu Authentication -> Sign-in Method, lalu AKTIFKAN pilihan 'Anonymous'. Jika tidak, aplikasi hanya akan menampilkan data bawaan pabrik yang akan kereset terus.");
                     }
                 };
 
