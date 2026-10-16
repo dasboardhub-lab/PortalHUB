@@ -1016,6 +1016,16 @@
             const [syncStatus, setSyncStatus] = useState('idle'); // idle, saving, success, error
             const [fetchStatus, setFetchStatus] = useState('loading'); // loading, success, empty, error
 
+            // Perlindungan sinkronisasi cloud:
+            // - Menahan penulisan sampai snapshot server terverifikasi.
+            // - Mengurutkan penulisan dari tab ini.
+            // - Menggunakan revision agar tab yang sudah kedaluwarsa tidak menimpa data baru.
+            const saveQueueRef = useRef(Promise.resolve());
+            const hasServerSettingsRef = useRef(false);
+            const serverRevisionRef = useRef(0);
+            const plannedRevisionRef = useRef(0);
+            const pendingSaveCountRef = useRef(0);
+
             const [modalConfig, setModalConfig] = useState({
                 isOpen: false,
                 type: 'alert',
@@ -1104,58 +1114,210 @@
             useEffect(() => {
                 if (!user || !firebaseDb) return;
                 const docRef = firebaseDb.collection('artifacts').doc(appId).collection('public').doc('data').collection('dashboard').doc('settings');
-                
-                const unsubscribe = docRef.onSnapshot((docSnap) => {
+
+                // Sertakan perubahan metadata agar aplikasi mengetahui saat snapshot cache
+                // telah digantikan oleh data yang benar-benar sudah dikonfirmasi server.
+                const unsubscribe = docRef.onSnapshot({ includeMetadataChanges: true }, (docSnap) => {
+                    const meta = docSnap.metadata || {};
+
+                    // Jangan membiarkan snapshot cache atau penulisan lokal yang belum
+                    // terkonfirmasi mengganti data yang sedang tampil.
+                    if (meta.fromCache || meta.hasPendingWrites || pendingSaveCountRef.current > 0) {
+                        if (!hasServerSettingsRef.current) setFetchStatus('loading');
+                        return;
+                    }
+
+                    hasServerSettingsRef.current = true;
                     if (docSnap.exists) {
-                        const data = docSnap.data();
-                        if(data.dataApps) setDataApps(data.dataApps);
-                        if(data.dataReports) setDataReports(data.dataReports);
-                        if(data.dataMonitoring) setDataMonitoring(data.dataMonitoring);
-                        if(data.dataHandovers) setDataHandovers(data.dataHandovers);
-                        if(data.dataPhotos) setDataPhotos(data.dataPhotos);
-                        if(data.dataWebUsers) setDataWebUsers(data.dataWebUsers);
-                        if(data.gridCols) setGridCols(data.gridCols);
-                        if(data.adminAuth) setAdminAuth(data.adminAuth);
-                        
+                        const data = docSnap.data() || {};
+                        const revision = Number(data.__syncMeta?.revision) || 0;
+                        serverRevisionRef.current = revision;
+                        plannedRevisionRef.current = revision;
+
+                        // Cek keberadaan field secara eksplisit. Array kosong juga merupakan
+                        // nilai yang sah dan tidak boleh dianggap sebagai field yang hilang.
+                        if (Object.prototype.hasOwnProperty.call(data, 'dataApps') && Array.isArray(data.dataApps)) setDataApps(data.dataApps);
+                        if (Object.prototype.hasOwnProperty.call(data, 'dataReports') && Array.isArray(data.dataReports)) setDataReports(data.dataReports);
+                        if (Object.prototype.hasOwnProperty.call(data, 'dataMonitoring') && Array.isArray(data.dataMonitoring)) setDataMonitoring(data.dataMonitoring);
+                        if (Object.prototype.hasOwnProperty.call(data, 'dataHandovers') && Array.isArray(data.dataHandovers)) setDataHandovers(data.dataHandovers);
+                        if (Object.prototype.hasOwnProperty.call(data, 'dataPhotos') && Array.isArray(data.dataPhotos)) setDataPhotos(data.dataPhotos);
+                        if (Object.prototype.hasOwnProperty.call(data, 'dataWebUsers') && Array.isArray(data.dataWebUsers)) setDataWebUsers(data.dataWebUsers);
+                        if (data.gridCols && typeof data.gridCols === 'object') setGridCols(data.gridCols);
+                        if (data.adminAuth && typeof data.adminAuth === 'object') setAdminAuth(data.adminAuth);
+
                         setFetchStatus('success');
                     } else {
-                        // Jika dokumen benar-benar tidak ada di database
+                        // Dokumen kosong tidak lagi dapat ditulisi oleh proses edit biasa.
+                        // Admin perlu memilih inisialisasi secara eksplisit terlebih dahulu.
+                        serverRevisionRef.current = 0;
+                        plannedRevisionRef.current = 0;
                         setFetchStatus('empty');
                     }
                 }, error => {
                     console.warn("Peringatan Firebase (Settings):", error.message);
                     setFetchStatus('error');
                     if (error.code === 'permission-denied') {
-                        showAlert("Akses Database Ditolak!", "Aturan (Rules) Firebase Anda salah. Harus diset ke: if request.auth != null;");
+                        showAlert("Akses Database Ditolak!", "Firebase menolak akses ke dokumen pengaturan. Periksa Firebase Authentication dan Firestore Rules.");
                     }
                 });
 
                 return () => unsubscribe();
             }, [user, firebaseDb, appId]);
 
-            const saveToCloud = async (updates) => {
-                if (isOffline || !user || !firebaseDb) {
-                    showAlert("Gagal Menyimpan!", "Koneksi ke Firebase belum siap. Tunggu beberapa detik.");
-                    setSyncStatus('error');
+            const refreshSettingsFromServer = async (docRef) => {
+                const snap = await docRef.get({ source: 'server' });
+                if (!snap.exists) {
+                    hasServerSettingsRef.current = true;
+                    serverRevisionRef.current = 0;
+                    setFetchStatus('empty');
                     return;
                 }
-                
+
+                const data = snap.data() || {};
+                const revision = Number(data.__syncMeta?.revision) || 0;
+                hasServerSettingsRef.current = true;
+                serverRevisionRef.current = revision;
+                if (pendingSaveCountRef.current === 0) plannedRevisionRef.current = revision;
+                if (Object.prototype.hasOwnProperty.call(data, 'dataApps') && Array.isArray(data.dataApps)) setDataApps(data.dataApps);
+                if (Object.prototype.hasOwnProperty.call(data, 'dataReports') && Array.isArray(data.dataReports)) setDataReports(data.dataReports);
+                if (Object.prototype.hasOwnProperty.call(data, 'dataMonitoring') && Array.isArray(data.dataMonitoring)) setDataMonitoring(data.dataMonitoring);
+                if (Object.prototype.hasOwnProperty.call(data, 'dataHandovers') && Array.isArray(data.dataHandovers)) setDataHandovers(data.dataHandovers);
+                if (Object.prototype.hasOwnProperty.call(data, 'dataPhotos') && Array.isArray(data.dataPhotos)) setDataPhotos(data.dataPhotos);
+                if (Object.prototype.hasOwnProperty.call(data, 'dataWebUsers') && Array.isArray(data.dataWebUsers)) setDataWebUsers(data.dataWebUsers);
+                if (data.gridCols && typeof data.gridCols === 'object') setGridCols(data.gridCols);
+                if (data.adminAuth && typeof data.adminAuth === 'object') setAdminAuth(data.adminAuth);
+                setFetchStatus('success');
+            };
+
+            const saveToCloud = async (updates) => {
+                if (isOffline || !user || !firebaseDb) {
+                    showAlert("Gagal Menyimpan!", "Koneksi atau autentikasi Firebase belum siap. Data belum disimpan ke cloud.");
+                    setSyncStatus('error');
+                    return false;
+                }
+                if (fetchStatus !== 'success') {
+                    const message = fetchStatus === 'empty'
+                        ? "Dokumen pengaturan cloud tidak ditemukan. Agar data bawaan tidak menimpa data lama secara tidak sengaja, lakukan inisialisasi secara eksplisit dari panel Admin terlebih dahulu."
+                        : "Data cloud belum berhasil diverifikasi dari server. Tunggu sampai status database terhubung, lalu ulangi perubahan Anda.";
+                    showAlert("Penyimpanan Ditahan", message);
+                    setSyncStatus('error');
+                    return false;
+                }
+
                 setSyncStatus('saving');
                 const docRef = firebaseDb.collection('artifacts').doc(appId).collection('public').doc('data').collection('dashboard').doc('settings');
-                try { 
-                    await docRef.set(updates, { merge: true }); 
+                // Cadangkan nomor versi untuk setiap penulisan agar beberapa perubahan
+                // dari tab yang sama tetap diproses berurutan.
+                const expectedRevision = plannedRevisionRef.current;
+                plannedRevisionRef.current = expectedRevision + 1;
+                pendingSaveCountRef.current += 1;
+
+                const operation = saveQueueRef.current.then(async () => {
+                    await firebaseDb.runTransaction(async (transaction) => {
+                        const currentSnap = await transaction.get(docRef);
+                        if (!currentSnap.exists) {
+                            const err = new Error("Dokumen pengaturan cloud tidak lagi tersedia.");
+                            err.code = 'dashboard-conflict';
+                            err.latestRevision = 0;
+                            throw err;
+                        }
+                        const currentData = currentSnap.data() || {};
+                        const currentRevision = Number(currentData.__syncMeta?.revision) || 0;
+                        if (currentRevision !== expectedRevision) {
+                            const err = new Error("Data dashboard sudah berubah dari tab atau perangkat lain. Penulisan lama dibatalkan untuk mencegah perubahan terbaru tertimpa.");
+                            err.code = 'dashboard-conflict';
+                            err.latestRevision = currentRevision;
+                            throw err;
+                        }
+
+                        transaction.set(docRef, {
+                            ...updates,
+                            __syncMeta: {
+                                revision: currentRevision + 1,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                updatedBy: user.uid || null,
+                                updatedFields: Object.keys(updates)
+                            }
+                        }, { merge: true });
+                    });
+                    serverRevisionRef.current = expectedRevision + 1;
+                    return true;
+                });
+                // Simpan rantai yang tidak reject supaya kegagalan satu penulisan tidak
+                // menghentikan seluruh penulisan berikutnya dalam tab ini.
+                saveQueueRef.current = operation.catch(() => false);
+
+                try {
+                    await operation;
                     setSyncStatus('success');
                     setTimeout(() => setSyncStatus('idle'), 3000);
-                } 
-                catch (e) { 
-                    console.warn("Peringatan Firebase (Save):", e.message); 
+                    return true;
+                } catch (e) {
+                    console.warn("Peringatan Firebase (Save):", e.message);
                     setSyncStatus('error');
-                    if (e.code === 'permission-denied') {
-                         showAlert("Gagal Menyimpan Data Permanen!", "Gembok Database Firebase Anda masih tertutup. Buka tab Rules dan setel izinnya.");
+                    if (e.code === 'dashboard-conflict') {
+                        try { await refreshSettingsFromServer(docRef); } catch (refreshError) {
+                            console.warn("Gagal memuat ulang data terbaru:", refreshError.message);
+                        }
+                        showAlert("Perubahan Tidak Ditimpa", "Ada perubahan yang lebih baru pada cloud. Penulisan ini dibatalkan dan data terbaru dimuat ulang. Silakan periksa kembali lalu ulangi edit Anda.");
+                    } else if (e.code === 'permission-denied') {
+                        showAlert("Gagal Menyimpan Data Permanen!", "Firebase menolak penulisan. Periksa Authentication dan Firestore Rules; jangan membuka database untuk semua orang.");
                     } else {
-                         showAlert("Gagal Menyimpan", e.message);
+                        showAlert("Gagal Menyimpan", e.message || "Terjadi kesalahan saat menyimpan ke cloud.");
                     }
+                    return false;
+                } finally {
+                    pendingSaveCountRef.current = Math.max(0, pendingSaveCountRef.current - 1);
+                    if (pendingSaveCountRef.current === 0) plannedRevisionRef.current = serverRevisionRef.current;
                 }
+            };
+
+            const initializeCloudSettings = () => {
+                if (!isAdminLoggedIn || !user || !firebaseDb || isOffline || fetchStatus !== 'empty') {
+                    showAlert("Inisialisasi Tidak Tersedia", "Inisialisasi hanya dapat dilakukan Admin setelah server memastikan dokumen pengaturan benar-benar kosong.");
+                    return;
+                }
+
+                showConfirm("Inisialisasi Data Cloud", "Dokumen pengaturan di cloud terdeteksi kosong. Simpan seluruh data yang saat ini tampil di layar ke cloud? Lakukan hanya jika Anda sudah memastikan proyek dan dokumen Firebase yang dipilih benar.", async () => {
+                    setSyncStatus('saving');
+                    const docRef = firebaseDb.collection('artifacts').doc(appId).collection('public').doc('data').collection('dashboard').doc('settings');
+                    try {
+                        await firebaseDb.runTransaction(async (transaction) => {
+                            const snap = await transaction.get(docRef);
+                            if (snap.exists) {
+                                const err = new Error("Dokumen sudah dibuat oleh proses lain. Data tidak diubah.");
+                                err.code = 'already-exists';
+                                throw err;
+                            }
+                            transaction.set(docRef, {
+                                dataApps, dataReports, dataMonitoring, dataHandovers, dataPhotos,
+                                dataWebUsers, gridCols, adminAuth,
+                                __syncMeta: {
+                                    revision: 1,
+                                    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                    updatedBy: user.uid || null,
+                                    updatedFields: ['dataApps','dataReports','dataMonitoring','dataHandovers','dataPhotos','dataWebUsers','gridCols','adminAuth'],
+                                    operation: 'initialize'
+                                }
+                            });
+                        });
+                        hasServerSettingsRef.current = true;
+                        serverRevisionRef.current = 1;
+                        plannedRevisionRef.current = 1;
+                        setFetchStatus('success');
+                        setSyncStatus('success');
+                        showAlert("Inisialisasi Berhasil", "Data yang tampil sekarang sudah disimpan ke cloud. Perubahan selanjutnya akan melalui pemeriksaan versi.");
+                    } catch (e) {
+                        setSyncStatus('error');
+                        if (e.code === 'already-exists') {
+                            try { await refreshSettingsFromServer(docRef); } catch (_) {}
+                            showAlert("Data Cloud Sudah Ada", "Dokumen dibuat oleh proses lain. Data server dimuat ulang dan tidak ditimpa.");
+                        } else {
+                            console.warn("Gagal inisialisasi dashboard:", e.message);
+                            showAlert("Gagal Inisialisasi", e.message || "Tidak dapat membuat dokumen pengaturan.");
+                        }
+                    }
+                });
             };
 
             const handleMenuClick = (viewId) => {
@@ -1363,6 +1525,11 @@
                             {syncStatus === 'saving' && <div className="flex items-center gap-2 text-xs font-bold text-blue-500"><span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> Menyimpan...</div>}
                             {syncStatus === 'success' && <div className="flex items-center gap-2 text-xs font-bold text-green-500"><span className="w-2 h-2 rounded-full bg-green-500"></span> Berhasil Disimpan</div>}
                             {syncStatus === 'error' && <div className="flex items-center gap-2 text-xs font-bold text-red-500"><span className="w-2 h-2 rounded-full bg-red-500"></span> Gagal Disimpan!</div>}
+                            {fetchStatus === 'empty' && isAdminLoggedIn && (
+                                <button onClick={initializeCloudSettings} className="w-full mt-2 px-3 py-2 rounded-lg border border-orange-300 bg-orange-50 text-orange-800 text-[11px] font-extrabold hover:bg-orange-100">
+                                    Inisialisasi Data Cloud
+                                </button>
+                            )}
                         </div>
 
                         <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
