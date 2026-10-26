@@ -1,0 +1,11 @@
+import { readFile, writeFile } from "node:fs/promises";
+import { initialCategories, initialLinks } from "../src/seed.ts";
+const file=new URL("../setup-supabase.sql",import.meta.url);
+const sql=await readFile(file,"utf8");
+if(!sql.includes("-- SEED_MARKER"))throw new Error("Seed placeholder missing; do not rewrite an already generated installer.");
+const literal=value=>"'"+String(value).replaceAll("'","''")+"'";
+const cats=initialCategories.map(c=>`(${[c.id,c.name,c.description,c.icon].map(literal).join(",")},${c.sortOrder})`).join(",\n");
+const records=initialLinks.map(l=>`(${[l.id,l.title,l.description,l.category,l.group,l.hub,l.icon,l.color,l.status].map(literal).join(",")},${literal(JSON.stringify(l.actions))}::jsonb,${l.pinned},${l.sortOrder})`).join(",\n");
+const seed=`do $hub_seed$\nbegin\n  insert into public.hub_portal_settings(id,title,area,announcement_title,announcement) values('main','Portal HUB','KALSULAMP','Satu tim, satu pusat informasi.','Akses aplikasi, laporan, dan panduan kerja dari portal ini. Tandai layanan favorit agar lebih cepat ditemukan.') on conflict(id) do nothing;\n  if not (select initialized from public.hub_portal_settings where id='main') then\n    insert into public.hub_portal_categories(id,name,description,icon,sort_order) values\n${cats}\non conflict(id) do nothing;\n    insert into public.hub_portal_links(id,title,description,category,group_name,hub,icon,color,status,actions,pinned,sort_order) values\n${records}\non conflict(id) do nothing;\n    update public.hub_portal_settings set initialized=true where id='main';\n  end if;\nend;\n$hub_seed$;`;
+await writeFile(file,sql.replace("-- SEED_MARKER",seed));
+console.log("SQL installer ready: 33 service templates, no default administrator.");
