@@ -5,7 +5,7 @@ let db,original;
 before(async()=>{
  db=new PGlite({extensions:{pgcrypto}});await db.exec(`create schema extensions;create extension pgcrypto with schema extensions;create role anon nologin;create role authenticated nologin;create role service_role nologin bypassrls;create schema auth;create table auth.users(id uuid primary key,email text,encrypted_password text);create function auth.uid() returns uuid stable language sql as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;
  create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text,metadata jsonb);alter table storage.objects enable row level security;grant usage on schema storage to anon,authenticated;grant select,insert,update,delete on storage.objects to anon,authenticated;`);
- for(const name of ['setup-supabase','setup-modules','setup-public-access','setup-handover-type','setup-menu-submenus','setup-submenu-order','setup-updates','setup-update-images','setup-team-tasks','setup-full-backup'])await db.exec(await readFile(new URL('../'+name+'.sql',import.meta.url),'utf8')).catch(e=>{delete e.query;throw e;});
+ for(const name of ['setup-supabase','setup-modules','setup-public-access','setup-handover-type','setup-menu-submenus','setup-submenu-order','setup-updates','setup-update-images','setup-team-tasks','setup-full-backup','setup-document-formats'])await db.exec(await readFile(new URL('../'+name+'.sql',import.meta.url),'utf8')).catch(e=>{delete e.query;throw e;});
  for(const [id,email] of [[admin,'admin@example.test'],[member,'staff-mks01@portalhub.invalid'],[outsider,'outsider@example.test']])await db.query("insert into auth.users values($1,$2,'AUTH_CREDENTIAL_NEVER_EXPORT')",[id,email]);
  await db.query("insert into public.hub_portal_members(user_id,role,display_name,staff_id,hub) values($1,'admin','Admin',null,'ALL'),($2,'member','PIC MKS','mks01','MKS')",[admin,member]);
  await as(admin,async()=>{
@@ -67,4 +67,29 @@ test('only admins can stage archived or absent task files; referenced evidence r
  const path=`${randomUUID()}/${admin}/${randomUUID()}.pdf`;
  await as(member,()=>assert.rejects(()=>object('hub-portal-task-files',path,'application/pdf',100),/row-level security/));
  await as(admin,async()=>{await object('hub-portal-task-files',path,'application/pdf',100);assert.equal((await db.query('delete from storage.objects where name=$1 returning id',[path])).rows.length,1);const evidence=(await snapshot()).files.find(f=>f.bucket==='hub-portal-task-files');assert.equal((await db.query('delete from storage.objects where name=$1 returning id',[evidence.path])).rows.length,0);});
+});
+
+test('Word, Excel and image documents retain admin-only writes, visitor access and complete backup recovery',async()=>{
+ const formats={doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',xls:'application/vnd.ms-excel',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif'};
+ const created=[];
+ await as(admin,async()=>{
+  for(const [ext,mime] of Object.entries(formats)){
+   const id=randomUUID(),path=id+'/'+randomUUID()+'.'+ext;
+   await object('hub-portal-documents',path,mime,100);
+   await db.query("insert into public.hub_portal_documents(id,title,category_id,pic,file_path,file_name,file_size) values($1,$2,$3,'PIC MKS',$4,$5,100)",[id,'Panduan '+ext,cat,path,'panduan.'+ext]);created.push(id);
+  }
+  const current=await snapshot();
+  for(const [ext,mime] of Object.entries(formats))assert.ok(current.files.some(f=>f.path.endsWith('.'+ext)&&f.mime===mime));
+  const maps=await upload(current);await restore(current,maps,current.fingerprint);
+  const recovered=await snapshot();assert.equal(recovered.files.length,current.files.length);
+  for(const id of created){const row=recovered.data.documents.find(r=>r.id===id);assert.ok(row);assert.ok(recovered.files.some(f=>f.path===row.file_path&&f.mime===formats[row.file_name.split('.').at(-1)]));}
+  const row=recovered.data.documents.find(r=>r.id===created[0]);
+  await assert.rejects(()=>db.query("update public.hub_portal_documents set file_name='renamed.xlsx' where id=$1",[row.id]),/jenis file/);
+  const bad=randomUUID(),badPath=bad+'/'+randomUUID()+'.docx';await object('hub-portal-documents',badPath,'application/pdf',100);
+  await assert.rejects(()=>db.query("insert into public.hub_portal_documents(id,title,category_id,pic,file_path,file_name,file_size) values($1,'Wrong MIME',$2,'PIC',$3,'bad.docx',100)",[bad,cat,badPath]),/belum terunggah/);
+  await assert.rejects(()=>object('hub-portal-documents',bad+'/'+randomUUID()+'.html','text/html',100),/row-level security/);
+ });
+ await as(null,async()=>{const rows=await call('hub_portal_document_list');for(const id of created)assert.ok(rows.some(r=>r.id===id));},'anon');
+ await as(member,()=>assert.rejects(()=>object('hub-portal-documents',randomUUID()+'/'+randomUUID()+'.xlsx',formats.xlsx,100),/row-level security/));
+ const bucket=(await db.query("select * from storage.buckets where id='hub-portal-documents'")).rows[0];assert.equal(bucket.public,false);assert.equal(Number(bucket.file_size_limit),26214400);assert.ok(bucket.allowed_mime_types.includes(formats.docx));assert.ok(bucket.allowed_mime_types.includes(formats.xlsx));
 });

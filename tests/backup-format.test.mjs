@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import ts from 'typescript';
-const source=ts.transpileModule(await readFile(new URL('../src/backup-format.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText;
+const source=ts.transpileModule(await readFile(new URL('../src/backup-format.ts',import.meta.url),'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ES2022}}).outputText.replace("'./document-files.ts'",JSON.stringify(new URL('../src/document-files.ts',import.meta.url).href));
 const format=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 const doc='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',fileId='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 async function fixture(){const bytes=new TextEncoder().encode('%PDF-1.7\nfixture');const file={bucket:'hub-portal-documents',path:`${doc}/${fileId}.pdf`,name:'dokumen.pdf',size:bytes.length,mime:'application/pdf'};const data=Object.fromEntries(format.BACKUP_TABLES.map(k=>[k,[]]));data.documents=[{id:doc,file_path:file.path,file_name:file.name,file_size:file.size}];return {format:'portal-hub-v2',manifest:{format:'portal-hub-v2',origin:doc,exportedAt:'2026-10-27T12:00:00Z',fingerprint:'a'.repeat(32),data,files:[file]},files:[{...file,data:format.encodeFile(bytes),sha256:await format.sha256(bytes)}]};}
@@ -30,4 +30,13 @@ test('upload failure, stale metadata and corrupt embedded files never proceed wi
   if(options.restoreError){const uploaded=client.calls.find(c=>c[0]==='upload')[1];assert.deepEqual(client.calls.find(c=>c[0]==='remove')[1],[uploaded]);}
  }
  const backup=await fixture(),client=storageClient(backup);backup.files[0].sha256='0'.repeat(64);dataMock.useClient(client);await assert.rejects(()=>dataModule.restoreBackup(backup,()=>{},()=>{}),/rusak/);assert.equal(client.calls.length,0);
+});
+
+test('full backup validates Word, Excel and image references without expanding image or task buckets',async()=>{
+ for(const [ext,mime] of Object.entries({doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',xls:'application/vnd.ms-excel',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif'})){
+  const backup=await fixture(),file=backup.files[0];file.path=file.path.replace('.pdf','.'+ext);file.name='document.'+ext;file.mime=mime;backup.manifest.data.documents[0].file_path=file.path;backup.manifest.data.documents[0].file_name=file.name;backup.manifest.files=[Object.fromEntries(Object.entries(file).filter(([k])=>!['sha256','data'].includes(k)))];
+  assert.equal(format.parseBackup(backup).files[0].mime,mime);
+  const unsafe=structuredClone(backup);unsafe.manifest.data.documents[0].file_path=unsafe.manifest.data.documents[0].file_path.replace('.'+ext,'.html');assert.throws(()=>format.parseBackup(unsafe));
+ }
+ const data=Object.fromEntries(format.BACKUP_TABLES.map(k=>[k,[]]));data.updates=[{images:[{path:doc+'/'+fileId+'.docx',name:'private.docx',size:10}]}];assert.throws(()=>format.referencedFiles(data));
 });

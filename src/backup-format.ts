@@ -1,3 +1,4 @@
+import {documentFormat} from './document-files.ts';
 export const BACKUP_LIMIT=256*1024*1024;
 export const BACKUP_TABLES=['categories','links','settings','members','handovers','document_categories','documents','updates','tasks','task_events','activity'] as const;
 export type BackupTable=typeof BACKUP_TABLES[number];
@@ -13,15 +14,15 @@ export const fileKey=(file:Pick<BackupFile,'bucket'|'path'>)=>`${file.bucket}|${
 const object=(value:unknown):value is Record<string,unknown>=>!!value&&typeof value==='object'&&!Array.isArray(value);
 export function referencedFiles(data:BackupData):BackupFile[]{
  const refs:BackupFile[]=[];
- for(const row of data.documents)refs.push({bucket:'hub-portal-documents',path:String(row.file_path||''),name:String(row.file_name||''),size:Number(row.file_size),mime:'application/pdf'});
+ for(const row of data.documents)refs.push({bucket:'hub-portal-documents',path:String(row.file_path||''),name:String(row.file_name||''),size:Number(row.file_size),mime:documentFormat(String(row.file_path||''))?.mime||''});
  for(const [table,key,bucket] of [['updates','images','hub-portal-images'],['task_events','attachments','hub-portal-task-files']] as const){
   for(const row of data[table]){if(!Array.isArray(row[key]))throw new Error('Daftar lampiran dalam cadangan tidak lengkap.');for(const file of row[key]){if(!object(file))throw new Error('Metadata lampiran tidak valid.');const path=String(file.path||'');refs.push({bucket,path,name:String(file.name||''),size:Number(file.size),mime:path.endsWith('.pdf')?'application/pdf':path.endsWith('.jpg')?'image/jpeg':path.endsWith('.png')?'image/png':path.endsWith('.webp')?'image/webp':''});}}
  }
  const unique=new Map<string,BackupFile>();
  for(const file of refs){
-  const task=file.bucket==='hub-portal-task-files';const pattern=task?/^[a-f0-9-]{36}\/[a-f0-9-]{36}\/[a-f0-9-]{36}\.(pdf|jpg|png|webp)$/:/^[a-f0-9-]{36}\/[a-f0-9-]{36}\.(pdf|jpg|png|webp)$/;
+  const task=file.bucket==='hub-portal-task-files',document=file.bucket==='hub-portal-documents';const pattern=document?/^[a-f0-9-]{36}\/[a-f0-9-]{36}\.(pdf|doc|docx|xls|xlsx|jpg|jpeg|png|webp|gif)$/:task?/^[a-f0-9-]{36}\/[a-f0-9-]{36}\/[a-f0-9-]{36}\.(pdf|jpg|png|webp)$/:/^[a-f0-9-]{36}\/[a-f0-9-]{36}\.(pdf|jpg|png|webp)$/;
   const limit=file.bucket==='hub-portal-documents'?25*1024*1024:file.mime==='application/pdf'?10*1024*1024:5*1024*1024;
-  if(!pattern.test(file.path)||!file.name||file.name.length>255||!file.mime||!Number.isSafeInteger(file.size)||file.size<1||file.size>limit||file.bucket==='hub-portal-documents'&&file.mime!=='application/pdf'||file.bucket==='hub-portal-images'&&file.mime==='application/pdf')throw new Error('Metadata file dalam cadangan tidak sesuai.');
+  if(!pattern.test(file.path)||!file.name||file.name.length>255||!file.mime||!Number.isSafeInteger(file.size)||file.size<1||file.size>limit||document&&documentFormat(file.name)?.mime!==file.mime||file.bucket==='hub-portal-images'&&file.mime==='application/pdf')throw new Error('Metadata file dalam cadangan tidak sesuai.');
   const previous=unique.get(fileKey(file));if(previous&&(previous.size!==file.size||previous.mime!==file.mime))throw new Error('Referensi file dalam cadangan bertentangan.');unique.set(fileKey(file),file);
  }
  return [...unique.values()].sort((a,b)=>fileKey(a).localeCompare(fileKey(b)));
@@ -46,4 +47,4 @@ export function encodeFile(bytes:Uint8Array){const chunks:string[]=[];for(let i=
 export function decodeFile(file:EmbeddedFile){const raw=atob(file.data);if(raw.length!==file.size)throw new Error(`Ukuran file ${file.name} tidak sesuai.`);return Uint8Array.from(raw,c=>c.charCodeAt(0));}
 export async function sha256(bytes:Uint8Array){if(!crypto.subtle)throw new Error('Gunakan portal melalui HTTPS untuk memproses cadangan.');const hash=await crypto.subtle.digest('SHA-256',Uint8Array.from(bytes).buffer);return Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');}
 export async function verifyFile(file:EmbeddedFile){const bytes=decodeFile(file);if(await sha256(bytes)!==file.sha256)throw new Error(`File ${file.name} rusak atau sudah berubah. Pemulihan dibatalkan.`);return bytes;}
-export function backupSummary(backup:ParsedBackup){if(backup.format==='portal-hub-v1')return [['Tautan layanan',backup.links.length],['Menu',backup.categories.length]] as [string,number][];const d=backup.manifest.data;return [['Tautan layanan',d.links.length],['Menu & submenu',d.categories.length],['Serah terima',d.handovers.length],['Dokumen PDF',d.documents.length],['Informasi & update',d.updates.length],['Tugas',d.tasks.length],['Aktivitas tugas',d.task_events.length],['Profil pengguna',d.members.length],['File terlampir',backup.files.length]] as [string,number][];}
+export function backupSummary(backup:ParsedBackup){if(backup.format==='portal-hub-v1')return [['Tautan layanan',backup.links.length],['Menu',backup.categories.length]] as [string,number][];const d=backup.manifest.data;return [['Tautan layanan',d.links.length],['Menu & submenu',d.categories.length],['Serah terima',d.handovers.length],['Dokumen & SOP',d.documents.length],['Informasi & update',d.updates.length],['Tugas',d.tasks.length],['Aktivitas tugas',d.task_events.length],['Profil pengguna',d.members.length],['File terlampir',backup.files.length]] as [string,number][];}

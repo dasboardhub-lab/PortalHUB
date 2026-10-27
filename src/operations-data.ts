@@ -3,7 +3,7 @@ import {supabase, explain} from './data';
 export type Handover={id:string;account_id:string;type:string;menu_group?:string;password:string;password_locked:boolean;has_password?:boolean;hub:string;route:string;description:string;created_at:string;updated_at:string};
 export type DocCategory={id:string;name:string;parent_id:string|null;updated_at:string};
 export type HubDocument={id:string;title:string;menu_group?:string;category_id:string;subcategory_id:string|null;hub:string;pic:string;document_date:string;reference:string;version:string;description:string;file_path:string;file_name:string;file_size:number;created_at:string;updated_at:string};
-import {validatePdf} from './pdf-validation';
+import {validateDocument} from './document-files';
 const bucket=()=>supabase().storage.from('hub-portal-documents');
 export async function listRows<T>(table:string):Promise<T[]>{
  const rows:T[]=[];let start=0;
@@ -21,16 +21,16 @@ export async function deleteRow(table:string,row:{id:string;updated_at:string}){
 export async function saveCategory(row:DocCategory,isNew:boolean){return saveRow('hub_portal_document_categories',row,isNew);}
 export async function saveDocument(row:HubDocument,isNew:boolean,file:File|null):Promise<string>{
  let path='';const oldPath=row.file_path;
- if(file){await validatePdf(file);path=`${row.id}/${newId()}.pdf`;const {error}=await bucket().upload(path,file,{contentType:'application/pdf',upsert:false,cacheControl:'0'});if(error)throw new Error('PDF belum dapat diunggah. Periksa koneksi, ukuran file, dan ruang penyimpanan.');row={...row,file_path:path,file_name:file.name.slice(0,255),file_size:file.size};}
- if(!row.file_path)throw new Error('Unggah file PDF terlebih dahulu.');
+ if(file){const format=await validateDocument(file);path=`${row.id}/${newId()}.${format.extension}`;const {error}=await bucket().upload(path,file,{contentType:format.mime,upsert:false,cacheControl:'0'});if(error)throw new Error('File belum dapat diunggah. Periksa koneksi, ukuran file, dan ruang penyimpanan.');const fileName=file.name.length>255?file.name.slice(0,240)+'.'+file.name.split('.').at(-1):file.name;row={...row,file_path:path,file_name:fileName,file_size:file.size};}
+ if(!row.file_path)throw new Error('Unggah file dokumen terlebih dahulu.');
  try{await saveRow('hub_portal_documents',row,isNew);}catch(error){if(path){const cleanup=await bucket().remove([path]);if(cleanup.error)console.warn('Pembersihan unggahan yang gagal belum selesai.');}throw error;}
  if(path&&oldPath&&oldPath!==path){const {error}=await bucket().remove([oldPath]);if(error)return 'Dokumen tersimpan. File versi lama belum dibersihkan dari penyimpanan.';}
- return isNew?'Dokumen PDF berhasil ditambahkan.':'Dokumen berhasil diperbarui.';
+ return isNew?'Dokumen berhasil ditambahkan.':'Dokumen berhasil diperbarui.';
 }
 export async function deleteDocument(row:HubDocument):Promise<string>{
  await deleteRow('hub_portal_documents',row);
  const {error}=await bucket().remove([row.file_path]);
- return error?'Dokumen dihapus dari daftar. Pembersihan file di penyimpanan belum selesai.':'Dokumen dan file PDF berhasil dihapus.';
+ return error?'Dokumen dihapus dari daftar. Pembersihan file di penyimpanan belum selesai.':'Dokumen dan file berhasil dihapus.';
 }
 export async function documentUrl(row:HubDocument,download=false){
  const {data,error}=await bucket().createSignedUrl(row.file_path,300,download?{download:row.file_name}:undefined);

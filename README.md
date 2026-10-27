@@ -18,31 +18,31 @@ Jangan menerbitkan folder root melalui opsi Deploy from a branch: `index.html` p
 
 Project URL dan publishable key dikonfigurasi pada `public/config.js`. Build menyalin konfigurasi tersebut menjadi `docs/config.js`. Frontend tidak menggunakan secret key atau service_role key.
 
-Tabel portal memakai awalan `hub_portal_`. Link, kategori, pengumuman, aktivitas, serah terima, dan metadata PDF disimpan di Supabase. Favorit dan riwayat akses disimpan pada browser masing-masing.
+Tabel portal memakai awalan `hub_portal_`. Link, kategori, pengumuman, aktivitas, serah terima, dan metadata dokumen disimpan di Supabase. Favorit dan riwayat akses disimpan pada browser masing-masing.
 
-Pengunjung dapat melihat portal, membuka tautan, dan melihat atau mengunduh PDF tanpa login. Hanya admin aktif di tabel keanggotaan yang dapat menambah, mengedit, dan menghapus data setelah masuk sebagai admin. Pada setiap data serah terima, admin memilih apakah Pass bisa ditampilkan pengunjung atau harus dibuka dengan kode. Pass berkode tidak dikirim ke pengunjung sebelum kode diverifikasi oleh server.
+Pengunjung dapat melihat portal, membuka tautan, dan melihat atau mengunduh dokumen tanpa login. Hanya admin aktif di tabel keanggotaan yang dapat menambah, mengedit, dan menghapus data setelah masuk sebagai admin. Pada setiap data serah terima, admin memilih apakah Pass bisa ditampilkan pengunjung atau harus dibuka dengan kode. Pass berkode tidak dikirim ke pengunjung sebelum kode diverifikasi oleh server.
 
 `setup-supabase.sql` disertakan untuk pemasangan baru. Installer tidak menimpa perubahan portal atau memunculkan kembali contoh layanan yang sudah dihapus saat dijalankan ulang. Untuk admin pertama, gunakan `aktifkan-admin.sql` setelah membuat akun melalui Authentication → Users. Setelah modul Tugas terpasang, akun tim berikutnya dibuat melalui **Masuk tim → Pengguna → Tambah pengguna**. Akun viewer dari installer lama tetap dapat dipertahankan; akses tugas memerlukan peran Anggota atau Admin.
 
 Tabel portal memakai RLS; hanya data baca yang ditentukan oleh kebijakan akses publik yang tersedia tanpa login. Perubahan data dilakukan melalui fungsi yang memeriksa admin, memvalidasi isian, serta mencatat aktivitas. Fungsi privileged berada dalam schema `hub_portal_private`; schema ini tidak perlu diekspos pada Data API.
 
-## Modul serah terima dan PDF
+## Modul serah terima dan Dokumen & SOP
 
-Instalasi baru: jalankan `setup-supabase.sql`, lalu `setup-modules.sql`, lalu `setup-public-access.sql`, `setup-handover-type.sql`, lalu `setup-menu-submenus.sql`, `setup-submenu-order.sql`, `setup-updates.sql`, `setup-update-images.sql`, lalu `setup-team-tasks.sql` dan `setup-full-backup.sql` satu kali. Setelah itu, pasang Edge Function `hub-portal-team` dari folder `supabase/functions/`. Pada proyek Supabase yang terhubung, migrasi modul sudah diterapkan. Jangan menjalankan ulang installer awal untuk mengubah pengaturan akses proyek yang sudah dipakai.
+Instalasi baru: jalankan `setup-supabase.sql`, lalu `setup-modules.sql`, lalu `setup-public-access.sql`, `setup-handover-type.sql`, lalu `setup-menu-submenus.sql`, `setup-submenu-order.sql`, `setup-updates.sql`, `setup-update-images.sql`, lalu `setup-team-tasks.sql`, `setup-full-backup.sql`, dan `setup-document-formats.sql` satu kali. Setelah itu, pasang Edge Function `hub-portal-team` dari folder `supabase/functions/`. Pada proyek Supabase yang terhubung, migrasi modul sudah diterapkan. Jangan menjalankan ulang installer awal untuk mengubah pengaturan akses proyek yang sudah dipakai.
 
 Serah terima memiliki ID akun, Pass, Tipe yang diketik manual, HUB, rute, dan keterangan. Data disimpan di Supabase, bukan memori browser. ID internal memakai UUID sehingga ID akun yang sama tetap bisa digunakan pada rute lain. Pencarian tidak mencakup password. Pass disamarkan, dapat dibatasi dengan kode per data, dan kembali disembunyikan setelah 30 detik atau saat tab browser tidak aktif.
 
-Dokumen memiliki nama, kategori/subkategori, HUB, PIC, tanggal dokumen, nomor dokumen, versi, keterangan, dan PDF maksimal 25 MB. Admin dapat mengubah metadata, mengganti PDF, menghapus dokumen, dan mengelola kategori. Kategori yang masih dipakai tidak dapat dihapus. File disimpan di bucket `hub-portal-documents` yang tetap privat; pengunjung memperoleh tautan sementara selama lima menit untuk PDF yang sudah diterbitkan dalam daftar. Unggahan yang belum tersimpan sebagai dokumen tidak bisa dibaca pengunjung.
+Dokumen memiliki nama, kategori/subkategori, HUB, PIC, tanggal dokumen, nomor dokumen, versi, keterangan, dan file PDF, Word (.doc/.docx), Excel (.xls/.xlsx), JPG/JPEG, PNG, WebP, atau GIF maksimal 25 MB per file. Admin dapat mengubah metadata, mengganti file, menghapus dokumen, dan mengelola kategori. Kategori yang masih dipakai tidak dapat dihapus. File disimpan di bucket `hub-portal-documents` yang tetap privat; pengunjung memperoleh tautan sementara selama lima menit untuk dokumen yang sudah diterbitkan dalam daftar. Unggahan yang belum tersimpan sebagai dokumen tidak bisa dibaca pengunjung.
 
-Tersedia pencarian, filter HUB/PIC/bulan/kategori/subkategori, tampilan kartu/tabel, serta pagination. Tabel tetap dapat digeser secara horizontal pada HP, dengan kolom pertama tetap terlihat. Perubahan memakai versi `updated_at` untuk mencegah penimpaan perubahan admin lain. Kode akses di-hash menggunakan bcrypt, tidak disertakan pada daftar publik, dan dibatasi maksimal lima kegagalan per data dalam lima menit. Log aktivitas tidak menyimpan password atau kode. Cadangan JSON lengkap pada Pengaturan portal mencakup seluruh modul portal beserta file yang dirujuk, termasuk PDF dan serah terima.
+Tersedia pencarian, filter HUB/PIC/bulan/kategori/subkategori, tampilan kartu/tabel, serta pagination. Tabel tetap dapat digeser secara horizontal pada HP, dengan kolom pertama tetap terlihat. Perubahan memakai versi `updated_at` untuk mencegah penimpaan perubahan admin lain. Kode akses di-hash menggunakan bcrypt, tidak disertakan pada daftar publik, dan dibatasi maksimal lima kegagalan per data dalam lima menit. Log aktivitas tidak menyimpan password atau kode. Cadangan JSON lengkap pada Pengaturan portal mencakup seluruh modul portal beserta file yang dirujuk, termasuk seluruh format dokumen dan serah terima.
 
-## Subkategori menu dan pemilih PDF
+## Subkategori menu dan pemilih file
 
 Semua menu, termasuk Aplikasi & sistem, Tim & monitoring, Serah terima, Dokumen & SOP, serta menu baru, mendukung submenu opsional. Buka **Kelola portal → Pengaturan portal → Menu & submenu**, lalu tekan **Submenu** di menu induk untuk menambah, mengubah nama, atau menghapus submenu. Submenu dapat dibuat dan disimpan sebelum ada isinya. Menu tanpa submenu tetap dibuka langsung. Nama submenu yang sama dapat dipakai di menu induk berbeda.
 
-Untuk tautan, pilih atau ketik **Subkategori menu** pada formulir layanan. Untuk serah terima dan PDF, pilih **Submenu** pada formulir data. Pilihan **Tanpa submenu** menyimpan data langsung pada induknya. Kolom Tipe serah terima dan kategori/subkategori dokumen tetap terpisah dari submenu navigasi. Nama submenu yang diubah juga diperbarui pada data di induk yang sama; submenu yang masih digunakan tidak dapat dihapus. Pengaturan submenu tersimpan di Supabase dan disertakan dalam cadangan JSON kategori. Daily, Inbound, dan Outbound tetap tersedia pada menu laporan. Admin dapat mengatur urutannya dengan cara yang sama seperti submenu menu lain.
+Untuk tautan, pilih atau ketik **Subkategori menu** pada formulir layanan. Untuk serah terima dan dokumen, pilih **Submenu** pada formulir data. Pilihan **Tanpa submenu** menyimpan data langsung pada induknya. Kolom Tipe serah terima dan kategori/subkategori dokumen tetap terpisah dari submenu navigasi. Nama submenu yang diubah juga diperbarui pada data di induk yang sama; submenu yang masih digunakan tidak dapat dihapus. Pengaturan submenu tersimpan di Supabase dan disertakan dalam cadangan JSON kategori. Daily, Inbound, dan Outbound tetap tersedia pada menu laporan. Admin dapat mengatur urutannya dengan cara yang sama seperti submenu menu lain.
 
-Form PDF mempertahankan metadata dan file saat pengguna kembali dari pemilih file atau memfokuskan ulang tab. Pengulangan event SIGNED_IN untuk akun yang sama hanya menyegarkan data. Pergantian akun atau keluar tetap menutup editor. PDF langsung diperiksa saat dipilih, dan setelah status siap pengguna menekan **Simpan dokumen**. Form tidak ditutup dengan menyentuh area di luar dialog.
+Form dokumen mempertahankan metadata dan file saat pengguna kembali dari pemilih file atau memfokuskan ulang tab. Pengulangan event SIGNED_IN untuk akun yang sama hanya menyegarkan data. Pergantian akun atau keluar tetap menutup editor. Jenis dan isi file langsung diperiksa saat dipilih, dan setelah status siap pengguna menekan **Simpan dokumen**. Form tidak ditutup dengan menyentuh area di luar dialog.
 
 ## Antarmuka portal
 
@@ -50,7 +50,7 @@ Desain memakai navigasi navy, aksen oranye, teks dengan kontras lebih jelas, dan
 
 Pada desktop (lebar di atas 900 px), menu kiri, konten tengah, dan panel informasi kanan memiliki area scroll vertikal masing-masing. Header pencarian dan judul halaman tetap terlihat. Scroll berhenti pada area yang sedang digulir tanpa menggerakkan area lain. Pergantian menu mengembalikan konten tengah ke atas; panel kanan tetap pada posisinya. Panel kanan mengikuti aturan responsif yang sudah ada dan disembunyikan saat ruang layar terbatas. Pada HP, konten memakai scroll halaman biasa dan menu samping tetap dapat digulir saat dibuka.
 
-Admin bisa membuka **Pengaturan** langsung dari header tanpa mengaktifkan mode edit. Tombol **Edit portal** menampilkan aksi edit/hapus pada kartu layanan. Pengaturan menu, form serah terima, serta unggah PDF memakai tampilan yang konsisten. Pengunjung tetap dapat membaca dan membuka layanan tanpa login; pengelolaan data memerlukan admin aktif.
+Admin bisa membuka **Pengaturan** langsung dari header tanpa mengaktifkan mode edit. Tombol **Edit portal** menampilkan aksi edit/hapus pada kartu layanan. Pengaturan menu, form serah terima, serta unggah dokumen memakai tampilan yang konsisten. Pengunjung tetap dapat membaca dan membuka layanan tanpa login; pengelolaan data memerlukan admin aktif.
 
 ## Update terbaru dan Informasi admin
 
@@ -112,7 +112,7 @@ Admin membuka **Pengaturan portal → Cadangan → Unduh cadangan lengkap**. For
 
 - Menu, urutan submenu, layanan/tautan, serta pengaturan dan papan informasi.
 - Serah terima, Pass, dan hash kode pembatas akses.
-- Kategori dokumen, metadata, dan isi file PDF.
+- Kategori dokumen, metadata, dan isi seluruh file PDF/Word/Excel/gambar.
 - Informasi admin, draf, arsip, update otomatis, dan isi gambar.
 - Tugas, checklist, progres, riwayat, komentar, dan file bukti.
 - Profil pengguna, NIK/ID, HUB, peran, status aktif, dan log aktivitas admin.
@@ -137,3 +137,11 @@ Form pembuatan akun dan penggantian password memakai batas 3–128 karakter. Seb
 Akun NIK/ID mencoba format baru dahulu, lalu password asli untuk akun lama hanya saat Auth mengembalikan `invalid_credentials`. Akun email lama mencoba password asli dahulu, lalu format baru. Batas percobaan/kesalahan jaringan tidak diulang dengan format alternatif. Password akun yang sudah ada tidak diubah otomatis. Perubahan identitas email akun yang memakai format ini harus disertai pengaturan password ulang; NIK/ID di portal tetap tidak dapat diubah. Pengolahan ini tidak menambah kekuatan tebak password 3 karakter.
 
 Pada halaman layanan selain Beranda, panel kanan berurutan **Papan informasi → Informasi admin → Update terbaru**.
+
+## Format Dokumen & SOP
+
+Jalankan `setup-document-formats.sql` satu kali pada proyek yang sudah memakai modul Cadangan lengkap. Penambahan ini memperluas ekstensi, MIME bucket, validasi referensi, serta pencadangan/pemulihan tanpa memindahkan atau mengganti file lama. Bucket tetap privat; akses publik hanya untuk file yang dirujuk daftar dokumen. Hanya admin aktif dapat mengunggah, mengubah, atau menghapus.
+
+Gunakan **Dokumen & SOP → Unggah dokumen**. Format: PDF, DOC, DOCX, XLS, XLSX, JPG/JPEG, PNG, WebP, dan GIF; maksimal **25 MB per file**. Kartu menampilkan label format dan ikon. PDF serta gambar memiliki pratinjau; Word dan Excel diunduh untuk dibuka di aplikasi perangkat. File Word/Excel tidak dikirim ke layanan pratinjau pihak ketiga. Pemilih file menerima MIME kosong/generik yang biasa diberikan perangkat HP, tetapi tetap memeriksa isi/signature dan struktur arsip DOCX/XLSX. Format dokumen dengan ekstensi macro (.docm/.xlsm) tidak termasuk pilihan.
+
+Paket Supabase Free menyediakan **1 GB Storage**, terpisah dari **500 MB database**; kuota Storage dipakai bersama semua bucket/proyek di organisasi. Perkiraan dengan pembulatan 1 GB ≈ 1.000 MB: 1 MB/file ≈ 1.000 file, 5 MB/file ≈ 200 file, 10 MB/file ≈ 100 file, 25 MB/file ≈ 40 file. Ini estimasi total sebelum dikurangi file yang sudah ada. Unduhan/pratinjau juga memakai kuota transfer data (egress) bulanan. Sumber: https://supabase.com/pricing dan https://supabase.com/docs/guides/platform/manage-your-usage/storage-size (diperiksa 28 Oktober 2026).
