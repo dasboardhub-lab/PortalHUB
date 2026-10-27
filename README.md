@@ -44,6 +44,12 @@ Untuk tautan, pilih atau ketik **Subkategori menu** pada formulir layanan. Untuk
 
 Form PDF mempertahankan metadata dan file saat pengguna kembali dari pemilih file atau memfokuskan ulang tab. Pengulangan event SIGNED_IN untuk akun yang sama hanya menyegarkan data. Pergantian akun atau keluar tetap menutup editor. PDF langsung diperiksa saat dipilih, dan setelah status siap pengguna menekan **Simpan dokumen**. Form tidak ditutup dengan menyentuh area di luar dialog.
 
+## Antarmuka portal
+
+Desain memakai navigasi navy, aksen oranye, teks dengan kontras lebih jelas, dan kartu layanan yang lebih mudah dipindai. Pencarian selalu tersedia di bagian atas. Filter HUB, submenu, dan status dapat dibersihkan melalui **Reset filter**. Pada HP, menu Beranda/Aplikasi/Laporan/Dokumen tersedia di navigasi bawah; tombol Menu membuka semua menu dan submenu. Kartu memakai satu kolom pada layar kecil, sementara tabel tetap dapat digeser dengan kolom ID yang tetap terlihat.
+
+Admin bisa membuka **Pengaturan** langsung dari header tanpa mengaktifkan mode edit. Tombol **Edit portal** menampilkan aksi edit/hapus pada kartu layanan. Pengaturan menu, form serah terima, serta unggah PDF memakai tampilan yang konsisten. Perubahan ini hanya menyentuh antarmuka; model data dan hak akses Supabase tetap mengikuti pengaturan yang ada.
+
 ## Pengembangan
 
 ```sh
