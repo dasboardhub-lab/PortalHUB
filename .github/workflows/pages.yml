@@ -29,6 +29,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Check TypeScript
         run: npm run check
+      - name: Test access rules and PDF validation
+        run: npm test
       - name: Build production site
         run: npm run build
       - name: Configure Pages

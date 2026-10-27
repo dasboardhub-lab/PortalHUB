@@ -1,10 +1,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { PortalData } from "./types";
-import { initialCategories } from "./seed";
 
 declare global { interface Window { PORTAL_CONFIG?:{supabaseUrl:string;publishableKey:string}; } }
 let client:SupabaseClient|undefined;
-function supabase():SupabaseClient{
+export function supabase():SupabaseClient{
   if(client)return client;
   const config=window.PORTAL_CONFIG;
   if(!config?.supabaseUrl||!config.publishableKey)throw new Error("Konfigurasi portal belum lengkap. Hubungi pengelola portal.");
@@ -14,14 +13,12 @@ function supabase():SupabaseClient{
   client=createClient(config.supabaseUrl,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"hub-portal-session-v1"},global:{headers:{"X-Client-Info":"portal-hub-web/1.0"}}});
   return client;
 }
-function emptyData(signedIn=false,email="",accessPending=false):PortalData{
-  return {links:[],categories:initialCategories,settings:{title:"Portal HUB",area:"KALSULAMP",announcementTitle:"Satu tim, satu pusat informasi.",announcement:"Masuk menggunakan akun tim untuk mengakses aplikasi, laporan, dan panduan kerja.",updatedAt:new Date().toISOString()},activity:[],canManage:false,signedIn,userEmail:email,accessPending,needsLogin:!signedIn};
-}
-function explain(error:{code?:string;message?:string}):Error{
+export function explain(error:{code?:string;message?:string}):Error{
   if(["PGRST202","PGRST205","42P01","42883"].includes(error.code||""))return new Error("Penyiapan portal belum selesai. Silakan hubungi pengelola portal.");
   if(error.code==="42501")return new Error("Akun Anda belum memiliki izin untuk tindakan ini.");
   if(error.code==="23503")return new Error("Kategori masih digunakan atau tidak tersedia. Muat ulang portal lalu coba lagi.");
   if(error.code==="23505")return new Error("Data dengan identitas yang sama sudah tersedia.");
+  if(["23514","23502","22P02"].includes(error.code||""))return new Error("Isian belum sesuai. Periksa kolom wajib dan format data.");
   const msg=error.message||"";
   if(msg.includes("Failed to fetch")||msg.toLowerCase().includes("network"))return new Error("Koneksi terputus. Periksa jaringan lalu coba lagi.");
   if(error.code==="P0001")return new Error(msg);
@@ -31,11 +28,10 @@ export async function getPortalData():Promise<PortalData>{
   const db=supabase();
   const {data:{session},error:sessionError}=await db.auth.getSession();
   if(sessionError)throw explain(sessionError);
-  if(!session)return emptyData();
   const {data,error}=await db.rpc("hub_portal_snapshot");
   if(error)throw explain(error);
-  if(!data?.approved)return emptyData(true,session.user.email||"",true);
-  return {...data,signedIn:true,needsLogin:false,accessPending:false,userEmail:session.user.email||""} as PortalData;
+  if(!data?.approved)throw new Error("Portal belum dapat dimuat. Coba lagi.");
+  return {...data,signedIn:!!session,needsLogin:false,accessPending:false,userEmail:session?.user.email||""} as PortalData;
 }
 export async function mutatePortal(payload:unknown):Promise<{message:string}>{
   const {data,error}=await supabase().rpc("hub_portal_mutate",{payload});
