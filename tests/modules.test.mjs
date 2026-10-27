@@ -197,3 +197,88 @@ test('renaming a parent keeps newer submenus and deleting the last link keeps it
   assert.ok((await portalSnapshot()).categories.find(c=>c.id==='apps').submenus.includes('Typed submenu'));
  });
 });
+
+test('manual submenu order persists publicly; rename retains position and stale reorders fail',async()=>{
+ await db.exec(await readFile(new URL('../setup-submenu-order.sql',import.meta.url),'utf8'));
+ await as(admin,async()=>{
+  for(const name of ['First','Second','Third'])await portalMutate({operation:'save-submenu',category_id:'monitoring',name});
+  const original=(await portalSnapshot()).categories.find(c=>c.id==='monitoring').submenus;
+  const desired=['Third','First','Second',...original.filter(n=>!['First','Second','Third'].includes(n))];
+  await portalMutate({operation:'reorder-submenus',category_id:'monitoring',names:desired,expected_names:original});
+  await assert.rejects(()=>portalMutate({operation:'reorder-submenus',category_id:'monitoring',names:original,expected_names:original}),/sudah berubah/);
+  await assert.rejects(()=>portalMutate({operation:'reorder-submenus',category_id:'monitoring',names:['First'],expected_names:desired}),/Daftar submenu/);
+  await portalMutate({operation:'save-submenu',category_id:'monitoring',old_name:'Third',name:'Top'});
+  assert.deepEqual((await portalSnapshot()).categories.find(c=>c.id==='monitoring').submenus,['Top','First','Second',...desired.slice(3)]);
+ });
+ await as(null,async()=>{const names=(await portalSnapshot()).categories.find(c=>c.id==='monitoring').submenus;assert.deepEqual(names.slice(0,3),['Top','First','Second']);await assert.rejects(()=>portalMutate({operation:'reorder-submenus',category_id:'monitoring',names,expected_names:names}),/permission denied/);},'anon');
+ await as(viewer,()=>assert.rejects(()=>portalMutate({operation:'reorder-submenus',category_id:'monitoring',names:[],expected_names:[]}),/Hanya admin/));
+});
+async function feed(source='all',status='published',limit=20,offset=0,query=''){return(await db.query('select public.hub_portal_update_list($1,$2,$3,$4,$5) result',[limit,offset,status,source,query])).rows[0].result;}
+async function saveInfo(row,isNew=true){return(await db.query('select public.hub_portal_update_save($1::jsonb,$2,$3) result',[JSON.stringify(row),isNew,row.updated_at||null])).rows[0].result.item;}
+let draft;
+test('updates installer preserves data without publishing old history, and denies non-admin writes',async()=>{
+ const counts=(await db.query('select (select count(*) from public.hub_portal_links)::int links,(select count(*) from public.hub_portal_documents)::int docs,(select count(*) from public.hub_portal_handovers)::int handovers')).rows[0];
+ await db.exec(await readFile(new URL('../setup-updates.sql',import.meta.url),'utf8'));
+ assert.deepEqual((await db.query('select (select count(*) from public.hub_portal_links)::int links,(select count(*) from public.hub_portal_documents)::int docs,(select count(*) from public.hub_portal_handovers)::int handovers')).rows[0],counts);
+ assert.equal((await feed()).total,0);
+ assert.equal((await db.query("select relrowsecurity from pg_class where oid='public.hub_portal_updates'::regclass")).rows[0].relrowsecurity,true);
+ await as(admin,async()=>{draft=await saveInfo({title:'Briefing tim',body:'Arahan operasional',status:'draft',source:'system'});assert.equal(draft.source,'manual');assert.equal((await feed('manual','draft')).total,1);});
+ await as(null,async()=>{
+  assert.equal((await feed()).total,0);assert.equal((await db.query('select * from public.hub_portal_updates')).rows.length,0);
+  await assert.rejects(()=>feed('all','draft'),/Hanya admin/);
+  await assert.rejects(()=>saveInfo({title:'x',body:'x'}),/permission denied/);
+  await assert.rejects(()=>db.query("insert into public.hub_portal_updates(title,body) values('x','x')"),/permission denied/);
+ },'anon');
+ for(const id of [viewer,outsider])await as(id,()=>assert.rejects(()=>saveInfo({title:'x',body:'x'}),/Hanya admin/));
+});
+test('admin information supports publish, search, idempotent edits, concurrency, archive and restore',async()=>{
+ await as(admin,async()=>{
+  draft=await saveInfo({...draft,status:'published',pinned:true,category_id:'reports'},false);
+  assert.ok(draft.published_at);assert.equal((await feed('manual')).total,1);
+  const identical=await saveInfo(draft,false);assert.equal(identical.updated_at,draft.updated_at);
+  const edited=await saveInfo({...draft,body:'Arahan terbaru untuk seluruh tim'},false);
+  await assert.rejects(()=>saveInfo({...draft,body:'Stale'},false),/sudah berubah/);
+  draft=edited;assert.equal((await feed('manual','published',20,0,'terbaru')).total,1);
+ });
+ await as(null,async()=>{const rows=await feed('manual');assert.equal(rows.total,1);assert.equal(rows.items[0].body,'Arahan terbaru untuk seluruh tim');await assert.rejects(()=>db.query("update public.hub_portal_updates set title='hacked'"),/permission denied/);},'anon');
+ await as(admin,async()=>{draft=await saveInfo({...draft,status:'archived'},false);assert.equal((await feed('manual','archived')).total,1);});
+ await as(null,async()=>assert.equal((await feed('manual')).total,0),'anon');
+ await as(admin,async()=>{draft=await saveInfo({...draft,status:'published'},false);assert.equal((await feed('manual')).total,1);});
+});
+test('update APIs bound pagination and validate links, input and privileged functions',async()=>{
+ await as(null,async()=>{
+  for(const [limit,offset] of [[null,0],[101,0],[0,0],[20,null],[20,-1],[20,100001]])await assert.rejects(()=>feed('all','published',limit,offset),/Filter/);
+  await assert.rejects(()=>feed(null),/Filter/);await assert.rejects(()=>feed('all',null),/Filter/);await assert.rejects(()=>feed('all','published',20,0,'x'.repeat(151)),/Filter/);
+  assert.equal((await feed('manual','published',1)).items.length,1);assert.equal((await feed('manual','published',1,1)).items.length,0);
+ },'anon');
+ await as(admin,async()=>{
+  for(const url of ['javascript:alert(1)','data:text/html,x','https://admin:pass@example.com','https://example.com/a b'])await assert.rejects(()=>saveInfo({title:'Title',body:'Body',url}),/Tautan/);
+  await assert.rejects(()=>saveInfo({title:' ',body:'Body'}),/Periksa/);
+  await assert.rejects(()=>saveInfo({title:'Title',body:'x'.repeat(4001)}),/Periksa/);
+  await assert.rejects(()=>saveInfo({title:'Title',body:'Body',url:'https://example.com',category_id:'apps'}),/salah satu/);
+  await assert.rejects(()=>db.query("select public.hub_portal_update_save('{\"title\":\"x\",\"body\":\"x\"}',null)"),/Isian/);
+ });
+ const wrappers=(await db.query("select p.prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname in ('hub_portal_update_list','hub_portal_update_save')")).rows;
+ assert.equal(wrappers.length,2);assert.ok(wrappers.every(r=>r.prosecdef===false));
+});
+test('automatic updates batch per menu, ignore unchanged data and never disclose handover secrets',async()=>{
+ const start=(await feed('system')).total;
+ await as(admin,async()=>{
+  await db.exec('begin');
+  const l={...(await portalSnapshot()).links.find(l=>l.category==='apps'),group:'Batch'};
+  await portalMutate({operation:'save-link',link:{...l,id:'updates-batch-a'}});
+  await portalMutate({operation:'save-link',link:{...l,id:'updates-batch-b'}});
+  await db.exec('commit');
+  const auto=(await feed('system')).items;assert.ok(auto.some(r=>r.category_id==='apps'));
+  const before=(await feed('system')).total;
+  await portalMutate({operation:'save-link',link:{...l,id:'updates-batch-a'}});
+  assert.equal((await feed('system')).total,before);
+  await db.query("insert into public.hub_portal_handovers(account_id,password,hub,route,description) values('SECRET-ACCOUNT','SECRET-PASSWORD','MKS','SECRET-ROUTE','SECRET-DESCRIPTION')");
+  const handover=(await feed('system')).items.find(r=>r.category_id==='handover');assert.ok(handover);
+  const json=JSON.stringify(handover);for(const secret of ['SECRET-ACCOUNT','SECRET-PASSWORD','SECRET-ROUTE','SECRET-DESCRIPTION','unlock_code_hash','file_path'])assert.ok(!json.includes(secret));
+  await assert.rejects(()=>saveInfo({...handover,title:'Spoof'},false),/otomatis/);
+ });
+ // Link batch plus one newly registered submenu yields two topics, and handover adds one.
+ assert.equal((await feed('system')).total,start+3);
+ await as(null,async()=>{const publicRows=await feed('system');assert.ok(publicRows.items.every(r=>r.status==='published'&&r.source==='system'));},'anon');
+});

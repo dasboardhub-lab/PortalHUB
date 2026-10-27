@@ -28,7 +28,7 @@ Tabel portal memakai RLS; hanya data baca yang ditentukan oleh kebijakan akses p
 
 ## Modul serah terima dan PDF
 
-Instalasi baru: jalankan `setup-supabase.sql`, lalu `setup-modules.sql`, lalu `setup-public-access.sql`, `setup-handover-type.sql`, lalu `setup-menu-submenus.sql` satu kali. Pada proyek Supabase yang terhubung, migrasi modul sudah diterapkan. Jangan menjalankan ulang installer awal untuk mengubah pengaturan akses proyek yang sudah dipakai.
+Instalasi baru: jalankan `setup-supabase.sql`, lalu `setup-modules.sql`, lalu `setup-public-access.sql`, `setup-handover-type.sql`, lalu `setup-menu-submenus.sql`, `setup-submenu-order.sql`, dan `setup-updates.sql` satu kali. Pada proyek Supabase yang terhubung, migrasi modul sudah diterapkan. Jangan menjalankan ulang installer awal untuk mengubah pengaturan akses proyek yang sudah dipakai.
 
 Serah terima memiliki ID akun, Pass, Tipe yang diketik manual, HUB, rute, dan keterangan. Data disimpan di Supabase, bukan memori browser. ID internal memakai UUID sehingga ID akun yang sama tetap bisa digunakan pada rute lain. Pencarian tidak mencakup password. Pass disamarkan, dapat dibatasi dengan kode per data, dan kembali disembunyikan setelah 30 detik atau saat tab browser tidak aktif.
 
@@ -40,7 +40,7 @@ Tersedia pencarian, filter HUB/PIC/bulan/kategori/subkategori, tampilan kartu/ta
 
 Semua menu, termasuk Aplikasi & sistem, Tim & monitoring, Serah terima, Dokumen & SOP, serta menu baru, mendukung submenu opsional. Buka **Kelola portal → Pengaturan portal → Menu & submenu**, lalu tekan **Submenu** di menu induk untuk menambah, mengubah nama, atau menghapus submenu. Submenu dapat dibuat dan disimpan sebelum ada isinya. Menu tanpa submenu tetap dibuka langsung. Nama submenu yang sama dapat dipakai di menu induk berbeda.
 
-Untuk tautan, pilih atau ketik **Subkategori menu** pada formulir layanan. Untuk serah terima dan PDF, pilih **Submenu** pada formulir data. Pilihan **Tanpa submenu** menyimpan data langsung pada induknya. Kolom Tipe serah terima dan kategori/subkategori dokumen tetap terpisah dari submenu navigasi. Nama submenu yang diubah juga diperbarui pada data di induk yang sama; submenu yang masih digunakan tidak dapat dihapus. Pengaturan submenu tersimpan di Supabase dan disertakan dalam cadangan JSON kategori. Daily, Inbound, dan Outbound tetap mengikuti kelompok laporan yang sudah ada.
+Untuk tautan, pilih atau ketik **Subkategori menu** pada formulir layanan. Untuk serah terima dan PDF, pilih **Submenu** pada formulir data. Pilihan **Tanpa submenu** menyimpan data langsung pada induknya. Kolom Tipe serah terima dan kategori/subkategori dokumen tetap terpisah dari submenu navigasi. Nama submenu yang diubah juga diperbarui pada data di induk yang sama; submenu yang masih digunakan tidak dapat dihapus. Pengaturan submenu tersimpan di Supabase dan disertakan dalam cadangan JSON kategori. Daily, Inbound, dan Outbound tetap tersedia pada menu laporan. Admin dapat mengatur urutannya dengan cara yang sama seperti submenu menu lain.
 
 Form PDF mempertahankan metadata dan file saat pengguna kembali dari pemilih file atau memfokuskan ulang tab. Pengulangan event SIGNED_IN untuk akun yang sama hanya menyegarkan data. Pergantian akun atau keluar tetap menutup editor. PDF langsung diperiksa saat dipilih, dan setelah status siap pengguna menekan **Simpan dokumen**. Form tidak ditutup dengan menyentuh area di luar dialog.
 
@@ -48,7 +48,25 @@ Form PDF mempertahankan metadata dan file saat pengguna kembali dari pemilih fil
 
 Desain memakai navigasi navy, aksen oranye, teks dengan kontras lebih jelas, dan kartu layanan yang lebih mudah dipindai. Pencarian selalu tersedia di bagian atas. Filter HUB, submenu, dan status dapat dibersihkan melalui **Reset filter**. Pada HP, menu Beranda/Aplikasi/Laporan/Dokumen tersedia di navigasi bawah; tombol Menu membuka semua menu dan submenu. Kartu memakai satu kolom pada layar kecil, sementara tabel tetap dapat digeser dengan kolom ID yang tetap terlihat.
 
-Admin bisa membuka **Pengaturan** langsung dari header tanpa mengaktifkan mode edit. Tombol **Edit portal** menampilkan aksi edit/hapus pada kartu layanan. Pengaturan menu, form serah terima, serta unggah PDF memakai tampilan yang konsisten. Perubahan ini hanya menyentuh antarmuka; model data dan hak akses Supabase tetap mengikuti pengaturan yang ada.
+Admin bisa membuka **Pengaturan** langsung dari header tanpa mengaktifkan mode edit. Tombol **Edit portal** menampilkan aksi edit/hapus pada kartu layanan. Pengaturan menu, form serah terima, serta unggah PDF memakai tampilan yang konsisten. Pengunjung tetap dapat membaca dan membuka layanan tanpa login; pengelolaan data memerlukan admin aktif.
+
+## Update terbaru dan Informasi admin
+
+Dua bagian ini menggantikan **Jelajahi menu** dan **Terakhir dibuka** pada beranda. Pada HP, keduanya tampil setelah ringkasan portal sebelum kartu layanan. Riwayat lengkap dapat dibuka melalui **Lihat semua** atau menu **Informasi tim**. Fitur ini tampil langsung sebagai konten portal.
+
+**Update terbaru** mencatat perubahan berikutnya pada tautan, menu, dokumen, serah terima, dan papan informasi secara otomatis. Pemasangan tidak menyalin log privat atau menerbitkan ulang data lama. Catatan serah terima bersifat umum dan tidak memuat ID akun, password, rute, keterangan, atau kode akses. Perubahan banyak baris dalam satu transaksi diringkas menjadi satu catatan per menu.
+
+**Informasi admin** dapat ditulis melalui **Login admin → Informasi admin → Tambah informasi**. Admin mengisi judul, isi, jenis informasi, tujuan menu atau tautan opsional, dan pilihan sematkan di atas. **Simpan draf** hanya dapat dibaca admin; **Terbitkan untuk tim** menampilkan informasi kepada seluruh pengunjung. Admin dapat mengedit dan mengarsipkan informasi, lalu menerbitkannya kembali dari tab Arsip. Versi data mencegah penimpaan edit admin lain. Riwayat otomatis tidak dapat diedit melalui formulir informasi.
+
+Daftar disegarkan melalui Supabase Realtime, pemeriksaan setiap 30 detik selama tab terlihat, serta saat kembali ke tab. Tidak ada push di luar browser atau pengiriman WhatsApp/email otomatis. Tombol **Salin untuk WhatsApp** menyiapkan teks agar admin dapat menempelkannya sendiri ke grup tim; bila clipboard tidak tersedia, teks dapat disalin manual.
+
+Tabel `hub_portal_updates` memakai RLS. Pengunjung hanya dapat membaca informasi berstatus published; draf dan arsip dibatasi untuk admin aktif. Semua perubahan informasi melalui RPC yang memeriksa keanggotaan admin. API membaca maksimal 100 catatan per permintaan dan UI menampilkan 20 per halaman. Publication Realtime hanya ditambah tabel pembaruan publik ini.
+
+## Urutan dan pengelompokan submenu
+
+Buka **Pengaturan → Menu & submenu → Submenu** pada menu induk. Gunakan panah **naik/turun** untuk memilih posisi; angka 1 adalah posisi paling atas. Perubahan langsung disimpan ke Supabase dan berlaku untuk seluruh pengunjung, termasuk setelah halaman dimuat ulang. Pengubahan nama mempertahankan posisinya, submenu baru ditambahkan di akhir, dan pengurutan yang bertabrakan dengan perubahan admin lain ditolak dengan pesan muat ulang.
+
+Navigasi, pilihan submenu, dan pengelompokan isi mengikuti urutan yang sama. Semua menu layanan dikelompokkan seperti Laporan operasional, termasuk tab kategori pada beranda. Serah terima dan dokumen juga dikelompokkan saat filter **Semua submenu** dipilih. Data tanpa submenu tetap tersedia di kelompok **Tanpa submenu**.
 
 ## Pengembangan
 
