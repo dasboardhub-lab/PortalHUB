@@ -5,4 +5,6 @@ import "./updates.css";
 import "./home.css";
 import "./update-images.css";
 import "./tasks.css";
+import "./service-cards.css";
+import "./backup.css";
 createRoot(document.getElementById("root")!).render(<Portal/>);

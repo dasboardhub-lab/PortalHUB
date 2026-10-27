@@ -28,13 +28,13 @@ Tabel portal memakai RLS; hanya data baca yang ditentukan oleh kebijakan akses p
 
 ## Modul serah terima dan PDF
 
-Instalasi baru: jalankan `setup-supabase.sql`, lalu `setup-modules.sql`, lalu `setup-public-access.sql`, `setup-handover-type.sql`, lalu `setup-menu-submenus.sql`, `setup-submenu-order.sql`, `setup-updates.sql`, `setup-update-images.sql`, lalu `setup-team-tasks.sql` satu kali. Setelah itu, pasang Edge Function `hub-portal-team` dari folder `supabase/functions/`. Pada proyek Supabase yang terhubung, migrasi modul sudah diterapkan. Jangan menjalankan ulang installer awal untuk mengubah pengaturan akses proyek yang sudah dipakai.
+Instalasi baru: jalankan `setup-supabase.sql`, lalu `setup-modules.sql`, lalu `setup-public-access.sql`, `setup-handover-type.sql`, lalu `setup-menu-submenus.sql`, `setup-submenu-order.sql`, `setup-updates.sql`, `setup-update-images.sql`, lalu `setup-team-tasks.sql` dan `setup-full-backup.sql` satu kali. Setelah itu, pasang Edge Function `hub-portal-team` dari folder `supabase/functions/`. Pada proyek Supabase yang terhubung, migrasi modul sudah diterapkan. Jangan menjalankan ulang installer awal untuk mengubah pengaturan akses proyek yang sudah dipakai.
 
 Serah terima memiliki ID akun, Pass, Tipe yang diketik manual, HUB, rute, dan keterangan. Data disimpan di Supabase, bukan memori browser. ID internal memakai UUID sehingga ID akun yang sama tetap bisa digunakan pada rute lain. Pencarian tidak mencakup password. Pass disamarkan, dapat dibatasi dengan kode per data, dan kembali disembunyikan setelah 30 detik atau saat tab browser tidak aktif.
 
 Dokumen memiliki nama, kategori/subkategori, HUB, PIC, tanggal dokumen, nomor dokumen, versi, keterangan, dan PDF maksimal 25 MB. Admin dapat mengubah metadata, mengganti PDF, menghapus dokumen, dan mengelola kategori. Kategori yang masih dipakai tidak dapat dihapus. File disimpan di bucket `hub-portal-documents` yang tetap privat; pengunjung memperoleh tautan sementara selama lima menit untuk PDF yang sudah diterbitkan dalam daftar. Unggahan yang belum tersimpan sebagai dokumen tidak bisa dibaca pengunjung.
 
-Tersedia pencarian, filter HUB/PIC/bulan/kategori/subkategori, tampilan kartu/tabel, serta pagination. Tabel tetap dapat digeser secara horizontal pada HP, dengan kolom pertama tetap terlihat. Perubahan memakai versi `updated_at` untuk mencegah penimpaan perubahan admin lain. Kode akses di-hash menggunakan bcrypt, tidak disertakan pada daftar publik, dan dibatasi maksimal lima kegagalan per data dalam lima menit. Log aktivitas tidak menyimpan password atau kode. Cadangan JSON pada Pengaturan portal mencakup tautan/kategori layanan; PDF dan tabel serah terima dikelola terpisah di Supabase.
+Tersedia pencarian, filter HUB/PIC/bulan/kategori/subkategori, tampilan kartu/tabel, serta pagination. Tabel tetap dapat digeser secara horizontal pada HP, dengan kolom pertama tetap terlihat. Perubahan memakai versi `updated_at` untuk mencegah penimpaan perubahan admin lain. Kode akses di-hash menggunakan bcrypt, tidak disertakan pada daftar publik, dan dibatasi maksimal lima kegagalan per data dalam lima menit. Log aktivitas tidak menyimpan password atau kode. Cadangan JSON lengkap pada Pengaturan portal mencakup seluruh modul portal beserta file yang dirujuk, termasuk PDF dan serah terima.
 
 ## Subkategori menu dan pemilih PDF
 
@@ -46,7 +46,7 @@ Form PDF mempertahankan metadata dan file saat pengguna kembali dari pemilih fil
 
 ## Antarmuka portal
 
-Desain memakai navigasi navy, aksen oranye, teks dengan kontras lebih jelas, dan kartu layanan yang lebih mudah dipindai. Pencarian selalu tersedia di bagian atas. Filter HUB, submenu, dan status dapat dibersihkan melalui **Reset filter**. Pada HP, menu Beranda/Aplikasi/Laporan/Dokumen tersedia di navigasi bawah; tombol Menu membuka semua menu dan submenu. Kartu memakai satu kolom pada layar kecil, sementara tabel tetap dapat digeser dengan kolom ID yang tetap terlihat.
+Desain memakai navigasi navy, aksen oranye, teks dengan kontras lebih jelas, dan kartu layanan yang lebih mudah dipindai. Pencarian selalu tersedia di bagian atas. Filter HUB, submenu, dan status dapat dibersihkan melalui **Reset filter**. Pada HP, menu Beranda/Aplikasi/Laporan/Dokumen tersedia di navigasi bawah; tombol Menu membuka semua menu dan submenu. Kartu layanan memakai empat kolom mulai lebar 1.680 px, tiga kolom mulai 1.400 px, dua kolom pada layar menengah, dan satu kolom sampai 600 px. Setiap kartu menampilkan submenu, judul, deskripsi, status akses, HUB, dan tombol akses yang tersusun rata. Tampilan daftar tetap tersedia. Tabel dapat digeser dengan kolom ID yang tetap terlihat.
 
 Admin bisa membuka **Pengaturan** langsung dari header tanpa mengaktifkan mode edit. Tombol **Edit portal** menampilkan aksi edit/hapus pada kartu layanan. Pengaturan menu, form serah terima, serta unggah PDF memakai tampilan yang konsisten. Pengunjung tetap dapat membaca dan membuka layanan tanpa login; pengelolaan data memerlukan admin aktif.
 
@@ -106,11 +106,26 @@ Versi dependensi dikunci dalam `package.json` dan `package-lock.json`. Hasil bui
 
 ## Cadangan
 
-Admin dapat membuka **Kelola portal → Pengaturan portal → Cadangan**. Pemulihan mengganti layanan dan kategori secara atomik; akun serta informasi portal dipertahankan. Jangan menyimpan cadangan berisi informasi internal tim dalam repository publik.
+Admin membuka **Pengaturan portal → Cadangan → Unduh cadangan lengkap**. Format `portal-hub-v2` menyimpan satu JSON yang berisi:
+
+- Menu, urutan submenu, layanan/tautan, serta pengaturan dan papan informasi.
+- Serah terima, Pass, dan hash kode pembatas akses.
+- Kategori dokumen, metadata, dan isi file PDF.
+- Informasi admin, draf, arsip, update otomatis, dan isi gambar.
+- Tugas, checklist, progres, riwayat, komentar, dan file bukti.
+- Profil pengguna, NIK/ID, HUB, peran, status aktif, dan log aktivitas admin.
+
+File yang dirujuk data disertakan sebagai base64 beserta SHA-256. File Storage yang tidak dirujuk, favorit/riwayat browser, tabel Supabase di luar portal, password login, dan sesi Auth tidak disertakan. JSON memuat data internal termasuk Pass serah terima; simpan secara privat dan jangan unggah ke repository publik. Batas satu JSON 256 MB, metadata 20 MB, maksimal 100.000 baris per tabel dan 10.000 file.
+
+Untuk memulihkan, pilih JSON, periksa ringkasan jumlah data, lalu tekan **Pulihkan seluruh data**. Portal memeriksa versi, asal proyek, metadata, kelengkapan file, dan SHA-256, lalu mengunduh cadangan kondisi saat ini terlebih dahulu. File dipersiapkan pada lokasi baru tanpa menimpa file aktif; penggantian data dilakukan secara atomik. Bila unggahan gagal atau data berubah saat file disiapkan, penggantian ditolak dan file persiapan dibersihkan. File lama dibersihkan setelah data baru berhasil disimpan. Dialog pemulihan tetap terbuka saat terjadi kesalahan.
+
+Pemulihan penuh ditujukan ke proyek portal yang sama. Akun login harus masih ada di Supabase Auth; kredensial tidak dibuat, diganti, atau dipulihkan dari JSON. Admin yang menjalankan pemulihan tetap aktif. Profil yang tidak ada dalam cadangan dinonaktifkan, kecuali admin tersebut. Cadangan lama `portal-hub-v1` tetap diterima dan hanya mengganti layanan serta kategori; modul lain tetap tersimpan.
+
+`setup-full-backup.sql` dijalankan satu kali setelah seluruh installer modul. Snapshot dan pemulihan hanya dapat dipakai admin aktif; API publik menggunakan security invoker dan pemeriksaan admin berada di schema privat. Pengujian pemulihan menggunakan database lokal dengan data contoh; pemasangan di proyek aktif tidak mengganti isi data portal.
 
 ## Validasi
 
-TypeScript, build produksi, dan pengujian integrasi PostgreSQL lokal mencakup RLS, keanggotaan, pencegahan eskalasi peran, validasi URL, perubahan kategori, pemulihan cadangan, perlindungan kategori terakhir, serta inisialisasi yang mempertahankan perubahan.
+TypeScript, build produksi, dan pengujian integrasi PostgreSQL lokal mencakup RLS, keanggotaan, pencegahan eskalasi peran, validasi URL, perubahan kategori, pemulihan cadangan lengkap beserta file dan penolakan konflik, integritas SHA-256, perlindungan kategori terakhir, serta inisialisasi yang mempertahankan perubahan.
 
 
 ## Password portal minimal 3 karakter
