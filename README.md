@@ -52,7 +52,7 @@ Admin bisa membuka **Pengaturan** langsung dari header tanpa mengaktifkan mode e
 
 ## Update terbaru dan Informasi admin
 
-Dua bagian ini menggantikan **Jelajahi menu** dan **Terakhir dibuka** pada beranda. Pada HP, keduanya tampil setelah ringkasan portal sebelum kartu layanan. Riwayat lengkap dapat dibuka melalui **Lihat semua** atau menu **Informasi tim**. Fitur ini tampil langsung sebagai konten portal.
+Beranda memprioritaskan **Informasi admin** di bagian atas, dengan judul dan ringkasan pesan utama yang lebih besar. Informasi yang disematkan tetap didahulukan. Panel **Mulai pekerjaan Anda** menyediakan pintasan seluruh menu dan ringkasan layanan/tautan/favorit; papan informasi portal lama tetap dapat dibuka dari panel ini. Daftar layanan berada setelahnya, sedangkan **Update terbaru** berupa riwayat ringkas di bagian bawah. Pada HP, susunannya mengikuti urutan yang sama dalam satu kolom. Riwayat lengkap dapat dibuka melalui **Lihat semua**, **Lihat riwayat**, atau menu **Informasi tim**. Saat mencari layanan, konten beranda disederhanakan agar hasil pencarian langsung terlihat.
 
 **Update terbaru** mencatat perubahan berikutnya pada tautan, menu, dokumen, serah terima, dan papan informasi secara otomatis. Pemasangan tidak menyalin log privat atau menerbitkan ulang data lama. Catatan serah terima bersifat umum dan tidak memuat ID akun, password, rute, keterangan, atau kode akses. Perubahan banyak baris dalam satu transaksi diringkas menjadi satu catatan per menu.
 
