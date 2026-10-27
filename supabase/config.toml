@@ -1,0 +1,2 @@
+[functions.hub-portal-team]
+verify_jwt = false

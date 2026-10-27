@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { PortalData } from "./types";
+import {staffEmail} from "../supabase/functions/_shared/team-validation";
 import {createAuthChangeHandler} from "./auth-events";
 
 declare global { interface Window { PORTAL_CONFIG?:{supabaseUrl:string;publishableKey:string}; } }
@@ -29,10 +30,12 @@ export async function getPortalData():Promise<PortalData>{
   const db=supabase();
   const {data:{session},error:sessionError}=await db.auth.getSession();
   if(sessionError)throw explain(sessionError);
-  const {data,error}=await db.rpc("hub_portal_snapshot");
+  const [snapshot,team]=await Promise.all([db.rpc("hub_portal_snapshot"),session?db.rpc("hub_portal_team_context"):Promise.resolve({data:null,error:null})]);
+  const {data,error}=snapshot;
   if(error)throw explain(error);
   if(!data?.approved)throw new Error("Portal belum dapat dimuat. Coba lagi.");
-  return {...data,signedIn:!!session,needsLogin:false,accessPending:false,userEmail:session?.user.email||""} as PortalData;
+  if(team.error)throw explain(team.error);
+  return {...data,teamProfile:team.data,signedIn:!!session,needsLogin:false,accessPending:false,userEmail:session?.user.email||""} as PortalData;
 }
 export async function mutatePortal(payload:unknown):Promise<{message:string}>{
   const {data,error}=await supabase().rpc("hub_portal_mutate",{payload});
@@ -41,9 +44,9 @@ export async function mutatePortal(payload:unknown):Promise<{message:string}>{
   return data;
 }
 export async function signInPortal(email:string,password:string):Promise<void>{
-  const {error}=await supabase().auth.signInWithPassword({email:email.trim(),password});
+  const {error}=await supabase().auth.signInWithPassword({email:email.includes("@")?email.trim():staffEmail(email),password});
   if(error){
-    if(error.code==="invalid_credentials")throw new Error("Email atau password belum sesuai.");
+    if(error.code==="invalid_credentials")throw new Error("NIK/ID atau password belum sesuai.");
     if(error.code==="email_not_confirmed")throw new Error("Email akun belum dikonfirmasi. Hubungi pengelola portal.");
     if(error.status===429)throw new Error("Terlalu banyak percobaan masuk. Tunggu beberapa saat lalu coba lagi.");
     throw new Error("Belum dapat masuk. Periksa akun dan koneksi Anda.");
