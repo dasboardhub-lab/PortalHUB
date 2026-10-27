@@ -28,7 +28,7 @@ Tabel portal memakai RLS; hanya data baca yang ditentukan oleh kebijakan akses p
 
 ## Modul serah terima dan PDF
 
-Instalasi baru: jalankan `setup-supabase.sql`, lalu `setup-modules.sql`, lalu `setup-public-access.sql`, `setup-handover-type.sql`, lalu `setup-menu-submenus.sql`, `setup-submenu-order.sql`, dan `setup-updates.sql` satu kali. Pada proyek Supabase yang terhubung, migrasi modul sudah diterapkan. Jangan menjalankan ulang installer awal untuk mengubah pengaturan akses proyek yang sudah dipakai.
+Instalasi baru: jalankan `setup-supabase.sql`, lalu `setup-modules.sql`, lalu `setup-public-access.sql`, `setup-handover-type.sql`, lalu `setup-menu-submenus.sql`, `setup-submenu-order.sql`, `setup-updates.sql`, dan `setup-update-images.sql` satu kali. Pada proyek Supabase yang terhubung, migrasi modul sudah diterapkan. Jangan menjalankan ulang installer awal untuk mengubah pengaturan akses proyek yang sudah dipakai.
 
 Serah terima memiliki ID akun, Pass, Tipe yang diketik manual, HUB, rute, dan keterangan. Data disimpan di Supabase, bukan memori browser. ID internal memakai UUID sehingga ID akun yang sama tetap bisa digunakan pada rute lain. Pencarian tidak mencakup password. Pass disamarkan, dapat dibatasi dengan kode per data, dan kembali disembunyikan setelah 30 detik atau saat tab browser tidak aktif.
 
@@ -52,7 +52,7 @@ Admin bisa membuka **Pengaturan** langsung dari header tanpa mengaktifkan mode e
 
 ## Update terbaru dan Informasi admin
 
-Beranda memprioritaskan **Informasi admin** di bagian atas, dengan judul dan ringkasan pesan utama yang lebih besar. Informasi yang disematkan tetap didahulukan. Panel **Mulai pekerjaan Anda** menyediakan pintasan seluruh menu dan ringkasan layanan/tautan/favorit; papan informasi portal lama tetap dapat dibuka dari panel ini. Daftar layanan berada setelahnya, sedangkan **Update terbaru** berupa riwayat ringkas di bagian bawah. Pada HP, susunannya mengikuti urutan yang sama dalam satu kolom. Riwayat lengkap dapat dibuka melalui **Lihat semua**, **Lihat riwayat**, atau menu **Informasi tim**. Saat mencari layanan, konten beranda disederhanakan agar hasil pencarian langsung terlihat.
+Beranda memakai kartu informasi admin yang ringkas, tanpa tinggi minimum atau panel besar. Maksimal dua informasi tampil berdampingan di desktop dan satu informasi utama tampil di HP; semua pesan tetap tersedia melalui **Lihat semua**. Thumbnail gambar bersifat opsional. Pintasan menu berbentuk tile, disusul akses layanan dan riwayat **Update terbaru** di bawah. Ringkasan jumlah layanan, tautan terhubung, dan favorit tetap dapat dibuka. Papan informasi portal lama tersedia melalui bagian yang bisa dibuka/tutup. Pencarian langsung memprioritaskan hasil layanan.
 
 **Update terbaru** mencatat perubahan berikutnya pada tautan, menu, dokumen, serah terima, dan papan informasi secara otomatis. Pemasangan tidak menyalin log privat atau menerbitkan ulang data lama. Catatan serah terima bersifat umum dan tidak memuat ID akun, password, rute, keterangan, atau kode akses. Perubahan banyak baris dalam satu transaksi diringkas menjadi satu catatan per menu.
 
@@ -61,6 +61,14 @@ Beranda memprioritaskan **Informasi admin** di bagian atas, dengan judul dan rin
 Daftar disegarkan melalui Supabase Realtime, pemeriksaan setiap 30 detik selama tab terlihat, serta saat kembali ke tab. Tidak ada push di luar browser atau pengiriman WhatsApp/email otomatis. Tombol **Salin untuk WhatsApp** menyiapkan teks agar admin dapat menempelkannya sendiri ke grup tim; bila clipboard tidak tersedia, teks dapat disalin manual.
 
 Tabel `hub_portal_updates` memakai RLS. Pengunjung hanya dapat membaca informasi berstatus published; draf dan arsip dibatasi untuk admin aktif. Semua perubahan informasi melalui RPC yang memeriksa keanggotaan admin. API membaca maksimal 100 catatan per permintaan dan UI menampilkan 20 per halaman. Publication Realtime hanya ditambah tabel pembaruan publik ini.
+
+## Gambar pendukung informasi admin
+
+Pada **Tambah/Edit informasi → Gambar pendukung → Pilih gambar**, admin dapat memilih maksimal 4 gambar JPG, PNG, atau WebP (5 MB per gambar, maksimal 24 megapiksel dan sisi terpanjang 12.000 piksel). File diperiksa berdasarkan isi file dan kemampuan browser membacanya, lalu tampil sebagai pratinjau. Keterangan gambar bersifat opsional; gunakan panah untuk mengatur urutan. Gambar pertama menjadi thumbnail kecil pada daftar. Gambar lengkap beserta keterangannya tampil di isi informasi saat dibuka, dan dapat dibuka dalam ukuran penuh.
+
+Gambar baru diunggah ketika **Simpan draf**, **Terbitkan**, atau **Simpan perubahan** ditekan. Pemilihan file dan metadata tetap berada di formulir bila validasi/unggahan gagal. Tombol simpan menampilkan progres unggahan. Menghapus gambar pada formulir baru diterapkan ketika informasi disimpan; membatalkan formulir mempertahankan versi tersimpan.
+
+File berada di bucket privat `hub-portal-images`, tanpa secret key pada frontend. RLS hanya mengizinkan admin aktif mengunggah; pengunjung dapat membaca file yang dirujuk informasi berstatus published. Draf dan arsip tidak dapat dibaca pengunjung. Tautan gambar berlaku lima menit dan disegarkan saat portal tetap terbuka. Metadata disimpan pada `hub_portal_updates.images`; referensi privat memakai foreign key agar file yang masih dipakai tidak terhapus. API mempertahankan gambar ketika klien lama tidak menyertakan kolom gambar. Penggantian gambar membersihkan file lama setelah data baru berhasil disimpan.
 
 ## Urutan dan pengelompokan submenu
 

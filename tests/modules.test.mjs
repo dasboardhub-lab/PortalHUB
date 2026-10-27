@@ -282,3 +282,50 @@ test('automatic updates batch per menu, ignore unchanged data and never disclose
  assert.equal((await feed('system')).total,start+3);
  await as(null,async()=>{const publicRows=await feed('system');assert.ok(publicRows.items.every(r=>r.status==='published'&&r.source==='system'));},'anon');
 });
+
+const imagePost='99999999-9999-4999-8999-999999999999',imagePath=`${imagePost}/88888888-8888-4888-8888-888888888888.png`;
+const imageInfo={path:imagePath,name:'agenda.png',size:128,width:800,height:450,caption:'Agenda tim'};
+let imageRow;
+test('image installer preserves announcements and creates a private bucket with admin uploads only',async()=>{
+ const before=(await db.query('select count(*)::int n from public.hub_portal_updates')).rows[0].n;
+ await db.exec(await readFile(new URL('../setup-update-images.sql',import.meta.url),'utf8'));
+ assert.equal((await db.query('select count(*)::int n from public.hub_portal_updates')).rows[0].n,before);
+ assert.ok((await db.query('select images from public.hub_portal_updates')).rows.every(r=>r.images.length===0));
+ const bucket=(await db.query("select * from storage.buckets where id='hub-portal-images'")).rows[0];assert.equal(bucket.public,false);assert.equal(Number(bucket.file_size_limit),5242880);assert.deepEqual(bucket.allowed_mime_types,['image/jpeg','image/png','image/webp']);
+ for(const id of [viewer,outsider])await as(id,()=>assert.rejects(()=>db.query("insert into storage.objects(bucket_id,name,metadata) values('hub-portal-images',$1,$2)",[imagePath,JSON.stringify({mimetype:'image/png',size:128})]),/row-level security/));
+ await as(null,()=>assert.rejects(()=>db.query("insert into storage.objects(bucket_id,name) values('hub-portal-images',$1)",[imagePath]),/row-level security/),'anon');
+ await as(admin,async()=>{
+  await db.query("insert into storage.objects(bucket_id,name,metadata) values('hub-portal-images',$1,$2)",[imagePath,JSON.stringify({mimetype:'image/png',size:128})]);
+  imageRow=await saveInfo({id:imagePost,title:'Agenda bergambar',body:'Informasi dengan gambar',status:'draft',images:[imageInfo]});assert.deepEqual(imageRow.images,[imageInfo]);
+ });
+ await as(null,async()=>{assert.equal((await db.query("select name from storage.objects where bucket_id='hub-portal-images'")).rows.length,0);assert.equal((await db.query('select hub_portal_private.update_image_access($1,false) allowed',[imagePath])).rows[0].allowed,false);await assert.rejects(()=>db.query('select * from hub_portal_private.update_image_refs'),/permission denied/);},'anon');
+});
+test('published image access follows announcement status and referenced images cannot be removed',async()=>{
+ await as(admin,async()=>{imageRow=await saveInfo({...imageRow,status:'published'},false);assert.equal((await db.query('delete from storage.objects where name=$1 returning id',[imagePath])).rows.length,0);});
+ await as(null,async()=>{assert.equal((await db.query('select name from storage.objects where name=$1',[imagePath])).rows.length,1);assert.deepEqual((await feed('manual')).items.find(r=>r.id===imagePost).images,[imageInfo]);},'anon');
+ await assert.rejects(()=>db.query('delete from storage.objects where name=$1',[imagePath]),/foreign key/);
+ await as(admin,async()=>{imageRow=await saveInfo({...imageRow,status:'archived'},false);});
+ await as(null,async()=>assert.equal((await db.query('select name from storage.objects where name=$1',[imagePath])).rows.length,0),'anon');
+ await as(viewer,()=>assert.rejects(()=>saveInfo({...imageRow,status:'published'},false),/Hanya admin/));
+});
+test('legacy edits retain images, image-only changes use optimistic concurrency, and removing an image permits cleanup',async()=>{
+ await as(admin,async()=>{
+  const legacy={...imageRow,title:'Nama diperbarui'};delete legacy.images;
+  imageRow=await saveInfo(legacy,false);assert.deepEqual(imageRow.images,[imageInfo]);
+  const unchanged=await saveInfo(imageRow,false);assert.equal(unchanged.updated_at,imageRow.updated_at);
+  const previous=imageRow;imageRow=await saveInfo({...imageRow,images:[{...imageInfo,caption:'Keterangan diperbarui'}]},false);assert.notEqual(imageRow.updated_at,previous.updated_at);
+  await assert.rejects(()=>saveInfo({...previous,images:[]},false),/sudah berubah/);
+  imageRow=await saveInfo({...imageRow,images:[]},false);assert.deepEqual(imageRow.images,[]);
+  assert.equal((await db.query('delete from storage.objects where name=$1 returning id',[imagePath])).rows.length,1);
+ });
+});
+test('image saves reject missing uploads, invalid formats, sizes, dimensions and paths from another announcement',async()=>{
+ await as(admin,async()=>{
+  await db.query("insert into storage.objects(bucket_id,name,metadata) values('hub-portal-images',$1,$2)",[imagePath,JSON.stringify({mimetype:'image/png',size:128})]);
+  const invalid=[null,[imageInfo,imageInfo],[{...imageInfo,size:129}],[{...imageInfo,width:12001}],[{...imageInfo,width:6000,height:6000}],[{...imageInfo,path:imagePath.replace('88888888','77777777')}],[{...imageInfo,path:imagePath.replace(imagePost,doc)}],[{...imageInfo,caption:'x'.repeat(201)}],Array.from({length:5},()=>imageInfo)];
+  for(const images of invalid)await assert.rejects(()=>saveInfo({...imageRow,images},false),/gambar|Gambar|Format|unggahan/);
+ });
+ // A forged content type cannot be attached even by an administrator.
+ await db.query("update storage.objects set metadata=$1 where name=$2",[JSON.stringify({mimetype:'image/svg+xml',size:128}),imagePath]);
+ await as(admin,()=>assert.rejects(()=>saveInfo({...imageRow,images:[imageInfo]},false),/Format gambar/));
+});
