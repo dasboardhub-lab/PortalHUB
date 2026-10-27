@@ -115,3 +115,17 @@ test('unlock code is verified server side, throttled and preserved on metadata e
   assert.equal((await db.query('select public.hub_portal_handover_unlock($1,$2) result',[lockedId,'TEST-CODE-ONLY'])).rows[0].result.password,'NEVER_PUBLIC_PASS');
  },'anon');
 });
+
+test('handover type is saved, returned publicly and preserved by older clients',async()=>{
+ await db.exec(await readFile(new URL('../setup-handover-type.sql',import.meta.url),'utf8'));
+ const row=(await db.query('select * from public.hub_portal_handovers where id=$1',[doc])).rows[0];
+ await as(admin,async()=>{
+  await db.query('select public.hub_portal_handover_save($1::jsonb,false,$2)',[JSON.stringify({...row,type:'  ELC Mitra  ',unlock_code:''}),row.updated_at]);
+  const updated=(await db.query('select * from public.hub_portal_handovers where id=$1',[doc])).rows[0];assert.equal(updated.type,'ELC Mitra');
+  const legacy={...updated,unlock_code:''};delete legacy.type;
+  await db.query('select public.hub_portal_handover_save($1::jsonb,false,$2)',[JSON.stringify(legacy),updated.updated_at]);
+  const current=(await db.query('select * from public.hub_portal_handovers where id=$1',[doc])).rows[0];assert.equal(current.type,'ELC Mitra');
+  await assert.rejects(()=>db.query('select public.hub_portal_handover_save($1::jsonb,false,$2)',[JSON.stringify({...current,type:'x'.repeat(81),unlock_code:''}),current.updated_at]),/constraint/);
+ });
+ await as(null,async()=>{const r=(await db.query('select public.hub_portal_handover_list() result')).rows[0].result.find(r=>r.id===doc);assert.equal(r.type,'ELC Mitra');assert.equal(r.password,'');},'anon');
+});

@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { PortalData } from "./types";
+import {createAuthChangeHandler} from "./auth-events";
 
 declare global { interface Window { PORTAL_CONFIG?:{supabaseUrl:string;publishableKey:string}; } }
 let client:SupabaseClient|undefined;
@@ -52,11 +53,8 @@ export async function signOutPortal():Promise<void>{
   const {error}=await supabase().auth.signOut({scope:"local"});
   if(error)throw new Error("Belum dapat keluar. Periksa koneksi lalu coba lagi.");
 }
-export function onPortalAuthChange(callback:()=>void):()=>void{
-  const {data:{subscription}}=supabase().auth.onAuthStateChange((event)=>{
-    // SDK callbacks stay synchronous. Load data in a later task to avoid
-    // waiting on a Supabase call while its authentication lock is held.
-    if(event!=="INITIAL_SESSION"&&event!=="TOKEN_REFRESHED")callback();
-  });
+export function onPortalAuthChange(callback:(identityChanged:boolean)=>void):()=>void{
+  // Keep the callback synchronous; portal loads run outside the SDK auth lock.
+  const {data:{subscription}}=supabase().auth.onAuthStateChange(createAuthChangeHandler(callback));
   return ()=>subscription.unsubscribe();
 }
