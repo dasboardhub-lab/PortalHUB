@@ -1,8 +1,8 @@
 import {newId} from './id';
 import {supabase, explain} from './data';
-export type Handover={id:string;account_id:string;type:string;password:string;password_locked:boolean;has_password?:boolean;hub:string;route:string;description:string;created_at:string;updated_at:string};
+export type Handover={id:string;account_id:string;type:string;menu_group?:string;password:string;password_locked:boolean;has_password?:boolean;hub:string;route:string;description:string;created_at:string;updated_at:string};
 export type DocCategory={id:string;name:string;parent_id:string|null;updated_at:string};
-export type HubDocument={id:string;title:string;category_id:string;subcategory_id:string|null;hub:string;pic:string;document_date:string;reference:string;version:string;description:string;file_path:string;file_name:string;file_size:number;created_at:string;updated_at:string};
+export type HubDocument={id:string;title:string;menu_group?:string;category_id:string;subcategory_id:string|null;hub:string;pic:string;document_date:string;reference:string;version:string;description:string;file_path:string;file_name:string;file_size:number;created_at:string;updated_at:string};
 import {validatePdf} from './pdf-validation';
 const bucket=()=>supabase().storage.from('hub-portal-documents');
 export async function listRows<T>(table:string):Promise<T[]>{
@@ -38,7 +38,7 @@ export async function documentUrl(row:HubDocument,download=false){
 }
 
 export async function saveHandover(row:Handover,isNew:boolean,code:string){
- const {data,error}=await supabase().rpc('hub_portal_handover_save',{payload:{id:row.id,account_id:row.account_id,type:row.type,password:row.password,password_locked:row.password_locked,hub:row.hub,route:row.route,description:row.description,unlock_code:code},is_new:isNew,expected_updated_at:row.updated_at||null});
+ const {data,error}=await supabase().rpc('hub_portal_handover_save',{payload:{id:row.id,account_id:row.account_id,type:row.type,menu_group:row.menu_group,password:row.password,password_locked:row.password_locked,hub:row.hub,route:row.route,description:row.description,unlock_code:code},is_new:isNew,expected_updated_at:row.updated_at||null});
  if(error)throw explain(error);if(!data?.ok)throw new Error('Data belum tersimpan.');
 }
 export async function unlockHandover(row:Handover,code:string):Promise<string>{

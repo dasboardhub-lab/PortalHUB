@@ -129,3 +129,71 @@ test('handover type is saved, returned publicly and preserved by older clients',
  });
  await as(null,async()=>{const r=(await db.query('select public.hub_portal_handover_list() result')).rows[0].result.find(r=>r.id===doc);assert.equal(r.type,'ELC Mitra');assert.equal(r.password,'');},'anon');
 });
+
+async function portalMutate(payload){return(await db.query('select public.hub_portal_mutate($1::jsonb) result',[JSON.stringify(payload)])).rows[0].result;}
+async function portalSnapshot(){return(await db.query('select public.hub_portal_snapshot() result')).rows[0].result;}
+test('submenus can be created before any content under all five menus and visitors cannot manage them',async()=>{
+ const counts=(await db.query('select (select count(*) from public.hub_portal_documents)::int documents,(select count(*) from public.hub_portal_handovers)::int handovers')).rows[0];
+ await db.exec(await readFile(new URL('../setup-menu-submenus.sql',import.meta.url),'utf8'));
+ await as(admin,async()=>{for(const id of ['apps','reports','monitoring','handover','docs'])assert.equal((await portalMutate({operation:'save-submenu',category_id:id,name:'Umum'})).ok,true);});
+ await as(null,async()=>{
+  const data=await portalSnapshot();for(const id of ['apps','reports','monitoring','handover','docs'])assert.ok(data.categories.find(c=>c.id===id).submenus.includes('Umum'));
+  await assert.rejects(()=>portalMutate({operation:'save-submenu',category_id:'apps',name:'Hacked'}),/permission denied/);
+ },'anon');
+ await as(viewer,()=>assert.rejects(()=>portalMutate({operation:'delete-submenu',category_id:'apps',name:'Umum'}),/Hanya admin/));
+ assert.deepEqual((await db.query('select (select count(*) from public.hub_portal_documents)::int documents,(select count(*) from public.hub_portal_handovers)::int handovers')).rows[0],counts);
+});
+test('submenu rename updates only its parent links and deletion protects content',async()=>{
+ await as(admin,async()=>{
+  const link={...(await portalSnapshot()).links.find(l=>l.category==='apps'),id:'submenu-test',title:'Submenu test',group:'Umum'};
+  await portalMutate({operation:'save-link',link});
+  await portalMutate({operation:'save-submenu',category_id:'apps',old_name:'Umum',name:'Internal QA'});
+  const data=await portalSnapshot();assert.equal(data.links.find(l=>l.id==='submenu-test').group,'Internal QA');assert.ok(data.categories.find(c=>c.id==='monitoring').submenus.includes('Umum'));assert.ok(!data.categories.find(c=>c.id==='apps').submenus.includes('Umum'));
+  await assert.rejects(()=>portalMutate({operation:'delete-submenu',category_id:'apps',name:'Internal QA'}),/Pindahkan data/);
+  await portalMutate({operation:'delete-link',id:'submenu-test'});
+  await portalMutate({operation:'delete-submenu',category_id:'apps',name:'Internal QA'});
+  assert.ok(!(await portalSnapshot()).categories.find(c=>c.id==='apps').submenus.includes('Internal QA'));
+ });
+});
+test('module submenu assignment and rename preserve PDF data, handover type and protected Pass',async()=>{
+ await as(admin,async()=>{
+  let row=(await db.query('select * from public.hub_portal_handovers where id=$1',[doc])).rows[0];
+  await db.query('select public.hub_portal_handover_save($1::jsonb,false,$2)',[JSON.stringify({...row,menu_group:'Umum',unlock_code:''}),row.updated_at]);
+  row=(await db.query('select * from public.hub_portal_handovers where id=$1',[doc])).rows[0];const legacy={...row,unlock_code:''};delete legacy.menu_group;
+  await db.query('select public.hub_portal_handover_save($1::jsonb,false,$2)',[JSON.stringify(legacy),row.updated_at]);
+  await db.query("update public.hub_portal_documents set menu_group='Umum' where id=$1",[doc]);
+  await portalMutate({operation:'save-submenu',category_id:'handover',old_name:'Umum',name:'Mitra'});
+  await portalMutate({operation:'save-submenu',category_id:'docs',old_name:'Umum',name:'Panduan'});
+  await assert.rejects(()=>portalMutate({operation:'delete-submenu',category_id:'handover',name:'Mitra'}),/Pindahkan data/);
+  await assert.rejects(()=>portalMutate({operation:'delete-submenu',category_id:'docs',name:'Panduan'}),/Pindahkan data/);
+ });
+ await as(null,async()=>{
+  const row=(await db.query('select public.hub_portal_handover_list() result')).rows[0].result.find(r=>r.id===doc);assert.equal(row.menu_group,'Mitra');assert.equal(row.type,'ELC Mitra');assert.equal(row.password,'');
+  const file=(await db.query('select public.hub_portal_document_list() result')).rows[0].result.find(r=>r.id===doc);assert.equal(file.menu_group,'Panduan');assert.equal(file.file_path,path);
+ },'anon');
+});
+test('submenu input validation rejects duplicates and reserved names, and backup retains empty submenus',async()=>{
+ await as(admin,async()=>{
+  for(const name of ['umum',' ALL ','','x'.repeat(71)])await assert.rejects(()=>portalMutate({operation:'save-submenu',category_id:'monitoring',name}),/Nama submenu/);
+  await assert.rejects(()=>portalMutate({operation:'save-submenu',category_id:'missing',name:'Umum'}),/Menu induk/);
+  await assert.rejects(()=>portalMutate({operation:'save-submenu',category_id:'apps',old_name:'missing',name:'New'}),/sudah berubah/);
+  await portalMutate({operation:'save-submenu',category_id:'docs',name:'Menu kosong'});
+  const data=await portalSnapshot();const backup={format:'portal-hub-v1',categories:data.categories,links:data.links};
+  await portalMutate({operation:'delete-submenu',category_id:'docs',name:'Menu kosong'});
+  await portalMutate({operation:'restore',backup});
+  assert.ok((await portalSnapshot()).categories.find(c=>c.id==='docs').submenus.includes('Menu kosong'));
+  const oldClient={...data.categories.find(c=>c.id==='docs'),name:'Dokumen & SOP'};delete oldClient.submenus;
+  await portalMutate({operation:'save-category',category:oldClient});assert.ok((await portalSnapshot()).categories.find(c=>c.id==='docs').submenus.includes('Menu kosong'));
+ });
+});
+test('renaming a parent keeps newer submenus and deleting the last link keeps its submenu',async()=>{
+ await as(admin,async()=>{
+  const stale=(await portalSnapshot()).categories.find(c=>c.id==='apps');
+  await portalMutate({operation:'save-submenu',category_id:'apps',name:'Empty saved'});
+  await portalMutate({operation:'save-category',category:{...stale,name:'Aplikasi & sistem'}});
+  assert.ok((await portalSnapshot()).categories.find(c=>c.id==='apps').submenus.includes('Empty saved'));
+  const link={...(await portalSnapshot()).links.find(l=>l.category==='apps'),id:'temporary-link',group:'Typed submenu'};
+  await portalMutate({operation:'save-link',link});await portalMutate({operation:'delete-link',id:link.id});
+  assert.ok((await portalSnapshot()).categories.find(c=>c.id==='apps').submenus.includes('Typed submenu'));
+ });
+});

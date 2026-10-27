@@ -1,0 +1,31 @@
+import {useState,type FormEvent} from 'react';
+import {ArrowLeft,Check,ChevronRight,Folder,Layers,Pencil,Plus,Trash2,X} from 'lucide-react';
+import type {Category,PortalData} from './types';
+import {menuGroups} from './menu-groups';
+
+export function MenuEditor({data,busy,mutate}:{data:PortalData;busy:boolean;mutate:(payload:unknown)=>Promise<boolean>}){
+ const [parent,setParent]=useState(''),[newMenu,setNewMenu]=useState(''),[editingMenu,setEditingMenu]=useState<Category|null>(null),[menuName,setMenuName]=useState('');
+ const [name,setName]=useState(''),[oldName,setOldName]=useState<string|null>(null),[remove,setRemove]=useState<string|null>(null),[error,setError]=useState('');
+ const category=data.categories.find(c=>c.id===parent);
+ const groups=category?menuGroups(data.links,category.id,data.categories):[];
+ async function act(payload:unknown){setError('');try{return await mutate(payload);}catch(e){setError(e instanceof Error?e.message:'Perubahan belum dapat disimpan.');return false;}}
+ function choose(id:string){setParent(id);setName('');setOldName(null);setRemove(null);setError('');}
+ async function saveSubmenu(e:FormEvent){e.preventDefault();if(await act({operation:'save-submenu',category_id:parent,name:name.trim(),old_name:oldName})){setName('');setOldName(null);}}
+ return <section className="menu-manager" aria-label="Pengaturan menu dan submenu">
+ {category?<>
+  <button className="text-button menu-back" disabled={busy} onClick={()=>choose('')}><ArrowLeft size={15}/>Semua menu</button>
+  <label>Menu induk<select disabled={busy} value={parent} onChange={e=>choose(e.target.value)}>{data.categories.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+  <div className="menu-section-heading"><Layers size={20}/><div><h3>Submenu {category.name}</h3><p>Submenu boleh dibuat sebelum data atau tautan diisi.</p></div></div>
+  <form className="menu-create-form" onSubmit={saveSubmenu}><label>{oldName===null?'Nama submenu baru':'Ubah nama submenu'}<input required disabled={busy} maxLength={70} value={name} onChange={e=>setName(e.target.value)} placeholder="Contoh: Internal, Vendor, Panduan"/></label><button className="button-primary" disabled={busy}>{oldName===null?<Plus size={16}/>:<Check size={16}/>} {oldName===null?'Tambah submenu':'Simpan nama'}</button>{oldName!==null&&<button type="button" className="button-secondary" disabled={busy} onClick={()=>{setOldName(null);setName('');}}>Batal</button>}</form>
+  <div className="menu-children">{groups.map(g=><div className="menu-child" key={g}><Folder size={17}/><span>{g}</span><button className="mini-button" aria-label={`Ubah submenu ${g}`} disabled={busy} onClick={()=>{setOldName(g);setName(g);setRemove(null);setError('');}}><Pencil size={15}/></button><button className="mini-button danger" aria-label={`Hapus submenu ${g}`} disabled={busy} onClick={()=>{setRemove(g);setError('');}}><Trash2 size={15}/></button></div>)}</div>
+  {!groups.length&&<p className="menu-empty">Menu ini dibuka langsung karena belum memiliki submenu.</p>}
+  {remove!==null&&<div className="menu-remove-confirm"><p>Hapus submenu <strong>{remove}</strong>?</p><p>Submenu yang masih berisi data harus dikosongkan dahulu.</p><div><button className="button-secondary" disabled={busy} onClick={()=>setRemove(null)}>Batal</button><button className="button-danger" disabled={busy} onClick={async()=>{if(await act({operation:'delete-submenu',category_id:parent,name:remove})){if(oldName===remove){setOldName(null);setName('');}setRemove(null);}}}>Hapus submenu</button></div></div>}
+  <p className="field-hint menu-help">Pilih submenu ini saat menambah atau mengedit data di menu {category.name}. Kosongkan pilihan untuk menampilkan data langsung pada menu induk.</p>
+ </>:<>
+  <p className="settings-description">Setiap menu bisa memiliki submenu sendiri. Pilih Submenu untuk menambah, mengubah, atau menghapusnya. Menu tanpa submenu tetap dibuka langsung.</p>
+  <div className="menu-parent-list">{data.categories.map(c=>{const count=menuGroups(data.links,c.id,data.categories).length;return <div className="menu-parent" key={c.id}><span className="category-mini orange"><Folder size={17}/></span>{editingMenu?.id===c.id?<form className="category-rename" onSubmit={async e=>{e.preventDefault();if(await act({operation:'save-category',category:{...c,name:menuName}}))setEditingMenu(null);}}><input required disabled={busy} maxLength={50} aria-label="Nama menu" value={menuName} onChange={e=>setMenuName(e.target.value)}/><button className="icon-button" disabled={busy} aria-label="Simpan nama menu"><Check size={17}/></button><button className="icon-button" disabled={busy} type="button" aria-label="Batal ubah menu" onClick={()=>setEditingMenu(null)}><X size={16}/></button></form>:<><span className="menu-parent-name">{c.name}<small>{count?`${count} submenu`:'Tanpa submenu'}</small></span><button className="menu-submenu-button" aria-label={`Kelola submenu ${c.name}`} disabled={busy} onClick={()=>choose(c.id)}>Submenu<ChevronRight size={14}/></button><button className="mini-button" aria-label={`Ubah menu ${c.name}`} disabled={busy} onClick={()=>{setEditingMenu(c);setMenuName(c.name);}}><Pencil size={15}/></button><button className="mini-button danger" disabled={busy||['handover','docs'].includes(c.id)||data.categories.length<=1||data.links.some(l=>l.category===c.id)} title="Menu harus kosong sebelum dihapus" aria-label={`Hapus menu ${c.name}`} onClick={()=>void act({operation:'delete-category',id:c.id})}><Trash2 size={15}/></button></>}</div>;})}</div>
+  <form className="menu-create-form" onSubmit={async e=>{e.preventDefault();if(await act({operation:'save-category',category:{name:newMenu,description:'',icon:'grid',sortOrder:data.categories.length}}))setNewMenu('');}}><label>Nama menu baru<input required disabled={busy} maxLength={50} placeholder="Nama menu baru…" value={newMenu} onChange={e=>setNewMenu(e.target.value)}/></label><button className="button-primary" disabled={busy}><Plus size={16}/>Tambah menu</button></form>
+ </>}
+ {error&&<p className="form-error" role="alert">{error}</p>}
+ </section>;
+}
