@@ -31,7 +31,7 @@ export default function Portal(){
   const [editor,setEditor]=useState<PortalLink|null>(null),[settingsOpen,setSettingsOpen]=useState(false),[helpOpen,setHelpOpen]=useState(false);
   const [deleteTarget,setDeleteTarget]=useState<PortalLink|null>(null),[toast,setToast]=useState(""),[busy,setBusy]=useState(false);
   const [loginOpen,setLoginOpen]=useState(false),[moduleRevision,setModuleRevision]=useState(0);
-  const searchRef=useRef<HTMLInputElement>(null),loadSerial=useRef(0),sidebarRef=useRef<HTMLElement>(null);
+  const searchRef=useRef<HTMLInputElement>(null),loadSerial=useRef(0),sidebarRef=useRef<HTMLElement>(null),contentRef=useRef<HTMLDivElement>(null);
   const load=useCallback(async()=>{
     const request=++loadSerial.current;
     try{const result=await getPortalData();if(request!==loadSerial.current)return;setData(result);setLoadError("");}
@@ -62,7 +62,7 @@ export default function Portal(){
     document.addEventListener("keydown",keyboard);
     return()=>{cancelAnimationFrame(frame);document.removeEventListener("keydown",keyboard);document.body.style.overflow=overflow;previous?.focus();};
   },[sidebar]);
-  function navigate(next:string,nextGroup="ALL"){setView(next);setTab("all");setGroup(nextGroup);setStatus("ALL");setQuery("");setSidebar(false);if(data?.categories.some(c=>c.id===next))setExpandedCategories(items=>items.includes(next)?items:[...items,next]);window.scrollTo({top:0,behavior:"smooth"});}
+  function navigate(next:string,nextGroup="ALL"){setView(next);setTab("all");setGroup(nextGroup);setStatus("ALL");setQuery("");setSidebar(false);if(data?.categories.some(c=>c.id===next))setExpandedCategories(items=>items.includes(next)?items:[...items,next]);contentRef.current?.scrollTo({top:0});window.scrollTo({top:0,behavior:"smooth"});}
   function favorite(id:string){const next=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];setFavorites(next);try{localStorage.setItem("portal-hub:favorites",JSON.stringify(next));}catch{setToast("Favorit tersimpan untuk sesi ini.");}}
   function record(id:string){const next=[id,...recent.filter(x=>x!==id)].slice(0,12);setRecent(next);try{localStorage.setItem("portal-hub:recent",JSON.stringify(next));}catch{}}
   async function mutate(body:unknown){setBusy(true);try{const result=await mutatePortal(body);await load();setModuleRevision(n=>n+1);void updates.refresh();setToast(result.message);return true;}finally{setBusy(false);}}
@@ -140,7 +140,7 @@ export default function Portal(){
         {loadError&&<div className="error-banner" role="alert"><span>{loadError}</span><button onClick={load}><RefreshCw size={15}/>Coba lagi</button></div>}
 
         <div className={`content-layout ${view==="home"?"home-layout":moduleView?"module-layout":""}`}>
-          <div className="content-primary">
+          <div ref={contentRef} className="content-primary" role="region" aria-label="Konten portal" tabIndex={0}>
             {view==="home"&&!isSearching&&<>
               <div className="home-priority">{teamFeed("manual","rail","spotlight")}</div>
               <section className="home-launchpad" aria-labelledby="home-menu-title">
@@ -164,7 +164,7 @@ export default function Portal(){
             <footer className="footer"><span>© {new Date().getFullYear()} {displayName} {area}<span className="footer-separator">/</span>Untuk tim, oleh tim.</span><button onClick={()=>setHelpOpen(true)}>Butuh bantuan?<ArrowUpRight size={13}/></button></footer>
           </div>
 
-          {!moduleView&&view!=="home"&&<aside className="right-rail" aria-label="Informasi tim">
+          {!moduleView&&view!=="home"&&<aside className="right-rail" aria-label="Informasi tim" tabIndex={0}>
             <section className="announcement-card"><div className="rail-kicker"><span><Megaphone size={15}/>PAPAN INFORMASI</span>{manage&&<button className="mini-button" aria-label="Edit pengumuman" onClick={()=>setSettingsOpen(true)}><Pencil size={14}/></button>}</div><h2>{data?.settings.announcementTitle||"Satu tim, satu pusat informasi."}</h2><p>{data?.settings.announcement||"Akses kebutuhan kerja tim melalui satu portal yang terhubung."}</p><div className="announcement-footer"><span className="tiny-avatar">OP</span><span>Tim Operasional<small>{area}</small></span><span className="announcement-pin"><Pin size={15}/></span></div></section>
             {teamFeed("manual","rail")}
             {teamFeed("system","rail")}

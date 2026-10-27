@@ -7,4 +7,5 @@ import "./update-images.css";
 import "./tasks.css";
 import "./service-cards.css";
 import "./backup.css";
+import "./scroll-layout.css";
 createRoot(document.getElementById("root")!).render(<Portal/>);

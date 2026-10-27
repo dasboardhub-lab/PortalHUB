@@ -1,0 +1,14 @@
+/* Guliran menu, konten, dan informasi terpisah pada tampilan desktop. */
+.sidebar{overscroll-behavior-y:contain}
+.content-primary:focus-visible,.right-rail:focus-visible{outline:2px solid #7c9ab8;outline-offset:-2px}
+
+@media(min-width:901px){
+  html,body,#root,.app-shell{height:100%;overflow:hidden}
+  .app-shell{height:100dvh;min-height:0}
+  .page-shell{height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  .topbar{flex-shrink:0}
+  .main{flex:1;min-height:0;width:100%;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;padding-bottom:0}
+  .main>.page-heading,.main>.manage-banner,.main>.access-notice,.main>.error-banner{flex-shrink:0}
+  .content-layout{flex:1;min-height:0;align-items:stretch;overflow:hidden}
+  .content-primary,.right-rail{min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:thin;scrollbar-gutter:stable;scrollbar-color:#bcc9d8 transparent;padding-bottom:28px}
+}
