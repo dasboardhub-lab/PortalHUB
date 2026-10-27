@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { PortalData } from "./types";
-import {staffEmail} from "../supabase/functions/_shared/team-validation";
+import {staffEmail,signInCompatible} from "../supabase/functions/_shared/team-validation";
 import {createAuthChangeHandler} from "./auth-events";
 
 declare global { interface Window { PORTAL_CONFIG?:{supabaseUrl:string;publishableKey:string}; } }
@@ -44,7 +44,8 @@ export async function mutatePortal(payload:unknown):Promise<{message:string}>{
   return data;
 }
 export async function signInPortal(email:string,password:string):Promise<void>{
-  const {error}=await supabase().auth.signInWithPassword({email:email.includes("@")?email.trim():staffEmail(email),password});
+  const identity=email.includes("@")?email.trim():staffEmail(email);
+  const {error}=await signInCompatible(supabase().auth,identity,password);
   if(error){
     if(error.code==="invalid_credentials")throw new Error("NIK/ID atau password belum sesuai.");
     if(error.code==="email_not_confirmed")throw new Error("Email akun belum dikonfirmasi. Hubungi pengelola portal.");

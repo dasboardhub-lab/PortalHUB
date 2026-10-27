@@ -164,8 +164,8 @@ export default function Portal(){
 
           {!moduleView&&view!=="home"&&<aside className="right-rail" aria-label="Informasi tim">
             <section className="announcement-card"><div className="rail-kicker"><span><Megaphone size={15}/>PAPAN INFORMASI</span>{manage&&<button className="mini-button" aria-label="Edit pengumuman" onClick={()=>setSettingsOpen(true)}><Pencil size={14}/></button>}</div><h2>{data?.settings.announcementTitle||"Satu tim, satu pusat informasi."}</h2><p>{data?.settings.announcement||"Akses kebutuhan kerja tim melalui satu portal yang terhubung."}</p><div className="announcement-footer"><span className="tiny-avatar">OP</span><span>Tim Operasional<small>{area}</small></span><span className="announcement-pin"><Pin size={15}/></span></div></section>
-            {teamFeed("system","rail")}
             {teamFeed("manual","rail")}
+            {teamFeed("system","rail")}
             <div className="tip-card"><span><Star size={17}/><strong>Tips untuk tim</strong></span><p>Klik <Star size={12}/> pada layanan yang sering digunakan. Buka lebih cepat lewat <strong>Favorit saya.</strong></p></div>
           </aside>}
         </div>

@@ -80,7 +80,7 @@ Navigasi, pilihan submenu, dan pengelompokan isi mengikuti urutan yang sama. Sem
 
 Pengunjung tetap dapat membaca informasi umum, tautan, dan PDF tanpa login. **Masuk tim** memakai satu formulir untuk anggota dan admin. Anggota masuk dengan **NIK/ID + password**; admin lama tetap memakai email dan password yang sudah ada. Tidak ada pendaftaran mandiri atau password bawaan baru.
 
-Admin membuka **Pengguna → Tambah pengguna** dan mengisi nama, NIK/ID, password awal, HUB, serta **Pengguna/peran: Anggota tim atau Admin**. NIK/ID sepanjang 2–50 karakter mendukung huruf, angka, titik, garis bawah, dan minus; tidak peka huruf besar/kecil dan mempertahankan angka nol di depan. Password minimal 10 karakter. Password tidak ditampilkan pada daftar, tidak disimpan dalam tabel profil, dan tidak dikirim kembali dari API. Akun baru tidak memerlukan email pribadi. Supabase Auth memakai identitas email internal yang dipetakan dari NIK/ID, tanpa pengiriman email. Admin dapat mengubah nama/HUB/peran, menonaktifkan/mengaktifkan akun, dan mengatur password baru untuk akun NIK/ID. ID login dipertahankan setelah akun dibuat. Admin tidak dapat menonaktifkan atau menurunkan peran akunnya sendiri.
+Admin membuka **Pengguna → Tambah pengguna** dan mengisi nama, NIK/ID, password awal, HUB, serta **Pengguna/peran: Anggota tim atau Admin**. NIK/ID sepanjang 2–50 karakter mendukung huruf, angka, titik, garis bawah, dan minus; tidak peka huruf besar/kecil dan mempertahankan angka nol di depan. Password yang diketik minimal 3 karakter. Password tidak ditampilkan pada daftar, tidak disimpan dalam tabel profil, dan tidak dikirim kembali dari API. Akun baru tidak memerlukan email pribadi. Supabase Auth memakai identitas email internal yang dipetakan dari NIK/ID, tanpa pengiriman email. Admin dapat mengubah nama/HUB/peran, menonaktifkan/mengaktifkan akun, dan mengatur password baru untuk akun NIK/ID maupun admin email lama. ID login dipertahankan setelah akun dibuat. Admin tidak dapat menonaktifkan atau menurunkan peran akunnya sendiri.
 
 Pada **Tugas operasional → Buat tugas**, admin mengisi judul, instruksi, HUB, satu PIC, tenggat dalam WITA, prioritas, dan checklist opsional (maksimal 30 langkah). Anggota hanya melihat tugas yang ditugaskan kepadanya. Admin dapat melihat semua tugas atau tugas miliknya sendiri. Ringkasan menampilkan total, diproses, perlu verifikasi, dan lewat tenggat; pencarian, filter HUB/status, dan halaman daftar tetap tersedia. Daftar disegarkan setiap 30 detik saat tab terlihat dan ketika kembali ke tab.
 
@@ -111,3 +111,12 @@ Admin dapat membuka **Kelola portal → Pengaturan portal → Cadangan**. Pemuli
 ## Validasi
 
 TypeScript, build produksi, dan pengujian integrasi PostgreSQL lokal mencakup RLS, keanggotaan, pencegahan eskalasi peran, validasi URL, perubahan kategori, pemulihan cadangan, perlindungan kategori terakhir, serta inisialisasi yang mempertahankan perubahan.
+
+
+## Password portal minimal 3 karakter
+
+Form pembuatan akun dan penggantian password memakai batas 3–128 karakter. Sebelum dikirim ke Supabase Auth, password diolah melalui PBKDF2 SHA-256 (100.000 iterasi) dengan salt versi dan email akun, menjadi kredensial internal 68 karakter. Derivasi dijalankan di server saat membuat/mengganti password dan di browser HTTPS saat masuk. Nilai ini tetap diverifikasi serta di-hash oleh Supabase Auth; aturan peran, sesi, dan RLS tetap berasal dari Supabase.
+
+Akun NIK/ID mencoba format baru dahulu, lalu password asli untuk akun lama hanya saat Auth mengembalikan `invalid_credentials`. Akun email lama mencoba password asli dahulu, lalu format baru. Batas percobaan/kesalahan jaringan tidak diulang dengan format alternatif. Password akun yang sudah ada tidak diubah otomatis. Perubahan identitas email akun yang memakai format ini harus disertai pengaturan password ulang; NIK/ID di portal tetap tidak dapat diubah. Pengolahan ini tidak menambah kekuatan tebak password 3 karakter.
+
+Pada halaman layanan selain Beranda, panel kanan berurutan **Papan informasi → Informasi admin → Update terbaru**.

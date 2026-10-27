@@ -1,7 +1,7 @@
-import {staffEmail,validateAccount,validatePassword} from '../_shared/team-validation.ts';
+import {staffEmail,validateAccount,validatePassword,deriveAuthPassword} from '../_shared/team-validation.ts';
 // Narrow interface keeps the handler independently testable without a live Auth service.
 type Result={data:any;error:any};
-type Service={auth:{getUser:(token:string)=>Promise<Result>;admin:{createUser:(data:any)=>Promise<Result>;deleteUser:(id:string)=>Promise<Result>;updateUserById:(id:string,data:any)=>Promise<Result>}};from:(table:string)=>any;rpc:(name:string,data:any)=>PromiseLike<Result>};
+type Service={auth:{getUser:(token:string)=>Promise<Result>;admin:{getUserById:(id:string)=>Promise<Result>;createUser:(data:any)=>Promise<Result>;deleteUser:(id:string)=>Promise<Result>;updateUserById:(id:string,data:any)=>Promise<Result>}};from:(table:string)=>any;rpc:(name:string,data:any)=>PromiseLike<Result>};
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,x-client-info,apikey,content-type','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const response=(status:number,data:unknown)=>new Response(JSON.stringify(data),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
 export function teamHandler(service:Service){return async(req:Request):Promise<Response>=>{
@@ -20,7 +20,8 @@ export function teamHandler(service:Service){return async(req:Request):Promise<R
  try{
   if(input.action==='create'){
    const p=validateAccount(input.account,true);
-   const {data,error}=await service.auth.admin.createUser({email:staffEmail(p.staff_id!),password:p.password,email_confirm:true});
+   const email=staffEmail(p.staff_id!);
+   const {data,error}=await service.auth.admin.createUser({email,password:await deriveAuthPassword(email,p.password!),email_confirm:true});
    if(error||!data.user)return response(400,{error:error?.code==='email_exists'||error?.code==='user_already_exists'?'NIK/ID ini sudah digunakan. Pilih ID lain.':'Akun belum dapat dibuat. Periksa NIK/ID dan kekuatan password.'});
    const {password:_,...profile}=p;
    const {error:saveError}=await service.rpc('hub_portal_team_account_apply',{p_actor:actor,p_user:data.user.id,p_payload:profile,p_new:true});
@@ -38,8 +39,10 @@ export function teamHandler(service:Service){return async(req:Request):Promise<R
    if(typeof id!=='string'||!/^[a-f0-9-]{36}$/.test(id))throw new Error('Identitas pengguna tidak valid.');
    const password=validatePassword(input.password);
    const {data:target,error}=await service.from('hub_portal_members').select('staff_id').eq('user_id',id).maybeSingle();
-   if(error||!target?.staff_id)return response(400,{error:'Penggantian ini hanya untuk akun tim dengan NIK/ID.'});
-   const {error:resetError}=await service.auth.admin.updateUserById(id,{password});
+   if(error||!target)return response(400,{error:'Pengguna portal tidak ditemukan.'});
+   let email=target.staff_id?staffEmail(target.staff_id):'';
+   if(!email){const {data:legacy,error:legacyError}=await service.auth.admin.getUserById(id);if(legacyError||!legacy.user?.email)return response(400,{error:'Identitas login pengguna tidak tersedia.'});email=legacy.user.email;}
+   const {error:resetError}=await service.auth.admin.updateUserById(id,{password:await deriveAuthPassword(email,password)});
    if(resetError)return response(400,{error:'Password belum dapat diganti. Gunakan password yang lebih kuat dan coba lagi.'});
    return response(200,{ok:true,message:'Password tim berhasil diganti.'});
   }
