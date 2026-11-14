@@ -5,7 +5,7 @@ export function useUpdates(enabled:boolean,identity:string){
  const serial=useRef(0);
  const refresh=useCallback(async()=>{
   if(!enabled)return;const request=++serial.current;
-  try{const [changes,admin]=await Promise.all([listUpdates({limit:3,source:'system'}),listUpdates({limit:3,source:'manual'})]);if(serial.current===request){setLatest(changes);setInformation(admin);setError('');setRevision(n=>n+1);}}
+  try{const [changes,admin]=await Promise.all([listUpdates({limit:3,source:'system'}),listUpdates({limit:10,source:'manual'})]);if(serial.current===request){setLatest(changes);setInformation(admin);setError('');setRevision(n=>n+1);}}
   catch(e){if(serial.current===request)setError(e instanceof Error?e.message:'Pembaruan belum dapat dimuat.');}
  },[enabled,identity]);
  useEffect(()=>{
