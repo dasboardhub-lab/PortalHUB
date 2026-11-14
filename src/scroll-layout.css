@@ -12,3 +12,11 @@
   .content-layout{flex:1;min-height:0;align-items:stretch;overflow:hidden}
   .content-primary,.right-rail{min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:thin;scrollbar-gutter:stable;scrollbar-color:#bcc9d8 transparent;padding-bottom:28px}
 }
+
+@media(min-width:901px){
+  html:has(.home-layout),body:has(.home-layout),#root:has(.home-layout),.app-shell:has(.home-layout){height:auto;min-height:100%;overflow:visible}
+  .page-shell:has(.home-layout){height:auto;min-height:100dvh;overflow:visible}
+  .main:has(.home-layout){flex:initial;min-height:0;overflow:visible;padding-bottom:30px}
+  .content-layout.home-layout{flex:initial;min-height:0;align-items:start;overflow:visible}
+  .home-layout>.content-primary,.home-layout>.home-latest{min-height:0;max-height:none;overflow:visible;overscroll-behavior:auto;scrollbar-gutter:auto;padding-bottom:0}
+}

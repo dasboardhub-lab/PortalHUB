@@ -93,6 +93,7 @@ export default function Portal(){
   const displayName=data?.settings.title||"Portal HUB";
   const area=data?.settings.area||"KALSULAMP";
   const teamFeed=(source:"manual"|"system",mode:"rail"|"page",presentation:"default"|"spotlight"|"timeline"="default")=><TeamUpdates key={`${source}:${mode}:${data?.userEmail}:${data?.canManage}`} source={source} mode={mode} presentation={presentation} canManage={!!data?.canManage} categories={data?.categories||[]} controller={updates} query={query} onBrowse={source=>navigate(source==="manual"?"information":"updates")} onNavigate={category=>{void load();setModuleRevision(n=>n+1);navigate(category);}}/>;
+  const announcementCard=<section className={`announcement-card ${view==="home"?"home-announcement":""}`} aria-label="Papan informasi portal"><div className="rail-kicker"><span><Megaphone size={15}/>PAPAN INFORMASI</span>{manage&&<button className="mini-button" aria-label="Edit pengumuman" onClick={()=>setSettingsOpen(true)}><Pencil size={14}/></button>}</div><h2>{data?.settings.announcementTitle||"Satu tim, satu pusat informasi."}</h2><p>{data?.settings.announcement||"Akses kebutuhan kerja tim melalui satu portal yang terhubung."}</p><div className="announcement-footer"><span className="tiny-avatar">OP</span><span>Tim Operasional<small>{area}</small></span><span className="announcement-pin"><Pin size={15}/></span></div></section>;
 
   return <div className="app-shell">
     <a className="skip-link" href="#main-content">Lewati ke konten utama</a>
@@ -139,8 +140,9 @@ export default function Portal(){
         {(data?.needsLogin||data?.accessPending)&&<section className="access-notice"><span className="access-notice-icon"><ShieldCheck size={22}/></span><div><h2>{data.accessPending?"Akun belum mendapat akses portal":"Masuk untuk mengakses layanan tim"}</h2><p>{data.accessPending?"Akun Anda sudah masuk. Hubungi admin agar akun ditambahkan sebagai anggota portal.":"Gunakan akun portal yang disediakan admin untuk membuka aplikasi dan laporan operasional."}</p></div>{data.needsLogin&&<button className="button-primary" onClick={()=>setLoginOpen(true)}>Masuk portal<ArrowRight size={16}/></button>}</section>}
         {loadError&&<div className="error-banner" role="alert"><span>{loadError}</span><button onClick={load}><RefreshCw size={15}/>Coba lagi</button></div>}
 
-        <div className={`content-layout ${view==="home"?"home-layout":moduleView?"module-layout":""}`}>
-          {view==="home"&&!isSearching&&teamFeed("manual","rail","spotlight")}
+        <div className={`content-layout ${view==="home"&&!isSearching?"home-layout":view==="home"?"home-search-layout":moduleView?"module-layout":""}`}>
+          {view==="home"&&!isSearching&&<div className="home-admin">{teamFeed("manual","rail","spotlight")}</div>}
+          {view==="home"&&!isSearching&&announcementCard}
           <div ref={contentRef} className="content-primary" role="region" aria-label="Konten portal" tabIndex={0}>
             {view==="home"&&!isSearching&&<>
               <section className="home-launchpad" aria-labelledby="home-menu-title">
@@ -162,10 +164,11 @@ export default function Portal(){
             {(view!=="home"||isSearching)&&<footer className="footer"><span>© {new Date().getFullYear()} {displayName} {area}<span className="footer-separator">/</span>Untuk tim, oleh tim.</span><button onClick={()=>setHelpOpen(true)}>Butuh bantuan?<ArrowUpRight size={13}/></button></footer>}
           </div>
 
-          {!moduleView&&(view!=="home"||!isSearching)&&<aside className={`right-rail ${view==="home"?"home-right-rail":""}`} aria-label="Informasi tim" tabIndex={0}>
-            <section className="announcement-card"><div className="rail-kicker"><span><Megaphone size={15}/>PAPAN INFORMASI</span>{manage&&<button className="mini-button" aria-label="Edit pengumuman" onClick={()=>setSettingsOpen(true)}><Pencil size={14}/></button>}</div><h2>{data?.settings.announcementTitle||"Satu tim, satu pusat informasi."}</h2><p>{data?.settings.announcement||"Akses kebutuhan kerja tim melalui satu portal yang terhubung."}</p><div className="announcement-footer"><span className="tiny-avatar">OP</span><span>Tim Operasional<small>{area}</small></span><span className="announcement-pin"><Pin size={15}/></span></div></section>
-            {view==="home"?<>{!isSearching&&<div className="home-latest">{teamFeed("system","rail","timeline")}</div>}<footer className="footer"><span>© {new Date().getFullYear()} {displayName} {area}<span className="footer-separator">/</span>Untuk tim, oleh tim.</span><button onClick={()=>setHelpOpen(true)}>Butuh bantuan?<ArrowUpRight size={13}/></button></footer></>:<>{teamFeed("manual","rail")}{teamFeed("system","rail")}<div className="tip-card"><span><Star size={17}/><strong>Tips untuk tim</strong></span><p>Klik <Star size={12}/> pada layanan yang sering digunakan. Buka lebih cepat lewat <strong>Favorit saya.</strong></p></div></>}
+          {!moduleView&&view!=="home"&&<aside className="right-rail" aria-label="Informasi tim" tabIndex={0}>
+            {announcementCard}
+            {teamFeed("manual","rail")}{teamFeed("system","rail")}<div className="tip-card"><span><Star size={17}/><strong>Tips untuk tim</strong></span><p>Klik <Star size={12}/> pada layanan yang sering digunakan. Buka lebih cepat lewat <strong>Favorit saya.</strong></p></div>
           </aside>}
+          {view==="home"&&!isSearching&&<aside className="home-latest" aria-label="Update terbaru" tabIndex={0}>{teamFeed("system","rail","timeline")}<footer className="footer"><span>© {new Date().getFullYear()} {displayName} {area}<span className="footer-separator">/</span>Untuk tim, oleh tim.</span><button onClick={()=>setHelpOpen(true)}>Butuh bantuan?<ArrowUpRight size={13}/></button></footer></aside>}
         </div>
       </main>
     </div>
