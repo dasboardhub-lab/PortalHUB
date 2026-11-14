@@ -164,9 +164,9 @@ export default function Portal(){
             {(view!=="home"||isSearching)&&<footer className="footer"><span>© {new Date().getFullYear()} {displayName} {area}<span className="footer-separator">/</span>Untuk tim, oleh tim.</span><button onClick={()=>setHelpOpen(true)}>Butuh bantuan?<ArrowUpRight size={13}/></button></footer>}
           </div>
 
-          {!moduleView&&view!=="home"&&<aside className="right-rail" aria-label="Informasi tim" tabIndex={0}>
+          {!moduleView&&(view!=="home"||isSearching)&&<aside className="right-rail" aria-label="Informasi tim" tabIndex={0}>
             {announcementCard}
-            {teamFeed("manual","rail")}{teamFeed("system","rail")}<div className="tip-card"><span><Star size={17}/><strong>Tips untuk tim</strong></span><p>Klik <Star size={12}/> pada layanan yang sering digunakan. Buka lebih cepat lewat <strong>Favorit saya.</strong></p></div>
+            {view==="home"?<footer className="footer"><span>© {new Date().getFullYear()} {displayName} {area}<span className="footer-separator">/</span>Untuk tim, oleh tim.</span><button onClick={()=>setHelpOpen(true)}>Butuh bantuan?<ArrowUpRight size={13}/></button></footer>:<>{teamFeed("manual","rail")}{teamFeed("system","rail")}<div className="tip-card"><span><Star size={17}/><strong>Tips untuk tim</strong></span><p>Klik <Star size={12}/> pada layanan yang sering digunakan. Buka lebih cepat lewat <strong>Favorit saya.</strong></p></div></>}
           </aside>}
           {view==="home"&&!isSearching&&<aside className="home-latest" aria-label="Update terbaru" tabIndex={0}>{teamFeed("system","rail","timeline")}<footer className="footer"><span>© {new Date().getFullYear()} {displayName} {area}<span className="footer-separator">/</span>Untuk tim, oleh tim.</span><button onClick={()=>setHelpOpen(true)}>Butuh bantuan?<ArrowUpRight size={13}/></button></footer></aside>}
         </div>
